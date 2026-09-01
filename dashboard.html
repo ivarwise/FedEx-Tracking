@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SwiftTrack - Admin Dashboard</title>
+  <title>SwiftTrack - Admin Workspace</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -14,28 +14,28 @@
       theme: {
         extend: {
           colors: {
-            fedexPurple: '#4D148C',
-            fedexOrange: '#FF6600',
-            fedexBg: '#F7F7F9',
-            fedexGreen: '#008A00',
+            swiftPurple: '#4D148C',
+            swiftOrange: '#FF6600',
+            swiftBg: '#F7F7F9',
+            swiftGreen: '#008A00',
           }
         }
       }
     }
   </script>
 </head>
-<body class="bg-fedexBg text-gray-800 font-sans min-h-screen">
+<body class="bg-swiftBg text-gray-800 font-sans min-h-screen">
 
   <!-- Top Admin Bar -->
-  <header class="bg-fedexPurple text-white px-6 py-4 shadow-md flex justify-between items-center">
+  <header class="bg-swiftPurple text-white px-6 py-4 shadow-md flex justify-between items-center">
     <div class="flex items-center space-x-3">
       <div class="text-2xl font-black tracking-tighter">
-        <span>Swift</span><span class="text-fedexOrange">Track</span>
+        <span>Swift</span><span class="text-swiftOrange">Track</span>
       </div>
-      <span class="bg-purple-800 text-purple-200 text-xs px-3 py-1 rounded-full font-semibold">Admin Workspace</span>
+      <span class="bg-purple-800 text-purple-200 text-xs px-3 py-1 rounded-full font-semibold">Admin Workspace (Private)</span>
     </div>
     <a href="index.html" target="_blank" class="bg-white/10 hover:bg-white/20 text-white text-xs px-4 py-2 rounded-lg font-semibold transition">
-      <i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i> Open Customer Portal
+      <i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i> Preview Customer Portal
     </a>
   </header>
 
@@ -46,22 +46,22 @@
       <div class="flex justify-between items-center mb-6">
         <div>
           <h2 class="text-xl font-bold text-gray-800">Register New Shipment</h2>
-          <p class="text-xs text-gray-500">Generates a unique tracking code and shipment receipt automatically.</p>
+          <p class="text-xs text-gray-500">Generates a unique tracking code, sets custom dates, and creates printable receipts.</p>
         </div>
       </div>
 
       <form id="createShipmentForm" class="space-y-6">
         <!-- Sender Details -->
         <div>
-          <h3 class="text-xs font-bold text-fedexPurple uppercase tracking-wider mb-3"><i class="fa-solid fa-user-gear mr-1"></i> Sender (Origin)</h3>
+          <h3 class="text-xs font-bold text-swiftPurple uppercase tracking-wider mb-3"><i class="fa-solid fa-user-gear mr-1"></i> Sender (Origin)</h3>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-            <input type="text" id="senderName" placeholder="Sender Full Name *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="senderPhone" placeholder="Phone Number" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="email" id="senderEmail" placeholder="Email Address" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="senderAddress" placeholder="Street Address *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none col-span-1 sm:col-span-2" />
-            <input type="text" id="senderCity" placeholder="City *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="senderState" placeholder="State/Province" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="senderCountry" placeholder="Country" value="United States" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="senderName" placeholder="Sender Full Name *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none" />
+            <input type="text" id="senderPhone" placeholder="Phone Number" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none" />
+            <input type="email" id="senderEmail" placeholder="Email Address" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none" />
+            <input type="text" id="senderAddress" placeholder="Street Address *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none col-span-1 sm:col-span-2" />
+            <input type="text" id="senderCity" placeholder="City *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none" />
+            <input type="text" id="senderState" placeholder="State/Province" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none" />
+            <input type="text" id="senderCountry" placeholder="Country" value="United States" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none" />
             <div class="flex gap-2">
               <input type="number" step="any" id="originLat" placeholder="Origin Lat (e.g. 34.0522)" class="border p-2.5 rounded-lg text-xs w-1/2 outline-none" />
               <input type="number" step="any" id="originLng" placeholder="Origin Lng (e.g. -118.2437)" class="border p-2.5 rounded-lg text-xs w-1/2 outline-none" />
@@ -73,15 +73,15 @@
 
         <!-- Recipient Details -->
         <div>
-          <h3 class="text-xs font-bold text-fedexPurple uppercase tracking-wider mb-3"><i class="fa-solid fa-location-dot mr-1"></i> Recipient (Destination)</h3>
+          <h3 class="text-xs font-bold text-swiftPurple uppercase tracking-wider mb-3"><i class="fa-solid fa-location-dot mr-1"></i> Recipient (Destination)</h3>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-            <input type="text" id="recipientName" placeholder="Recipient Full Name *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="recipientPhone" placeholder="Phone Number" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="email" id="recipientEmail" placeholder="Email Address" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="recipientAddress" placeholder="Street Address *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none col-span-1 sm:col-span-2" />
-            <input type="text" id="recipientCity" placeholder="City *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="recipientState" placeholder="State/Province" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="recipientCountry" placeholder="Country" value="United States" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="recipientName" placeholder="Recipient Full Name *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none" />
+            <input type="text" id="recipientPhone" placeholder="Phone Number" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none" />
+            <input type="email" id="recipientEmail" placeholder="Email Address" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none" />
+            <input type="text" id="recipientAddress" placeholder="Street Address *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none col-span-1 sm:col-span-2" />
+            <input type="text" id="recipientCity" placeholder="City *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none" />
+            <input type="text" id="recipientState" placeholder="State/Province" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none" />
+            <input type="text" id="recipientCountry" placeholder="Country" value="United States" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none" />
             <div class="flex gap-2">
               <input type="number" step="any" id="destLat" placeholder="Dest Lat (e.g. 40.7128)" class="border p-2.5 rounded-lg text-xs w-1/2 outline-none" />
               <input type="number" step="any" id="destLng" placeholder="Dest Lng (e.g. -74.0060)" class="border p-2.5 rounded-lg text-xs w-1/2 outline-none" />
@@ -91,34 +91,46 @@
 
         <hr class="border-gray-100" />
 
-        <!-- Package & Service Info -->
+        <!-- Package, Service & Manual Date Settings -->
         <div>
-          <h3 class="text-xs font-bold text-fedexPurple uppercase tracking-wider mb-3"><i class="fa-solid fa-box mr-1"></i> Package Information</h3>
+          <h3 class="text-xs font-bold text-swiftPurple uppercase tracking-wider mb-3"><i class="fa-solid fa-box mr-1"></i> Package Details & Timestamps</h3>
           <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 text-sm">
-            <select id="packageType" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none bg-white">
+            <select id="packageType" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none bg-white">
               <option value="Package">Package</option>
               <option value="Envelope">Envelope / Letter</option>
               <option value="Freight">Freight / Pallet</option>
             </select>
-            <input type="number" step="0.1" id="weightLbs" placeholder="Weight (lbs)" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="dimensions" placeholder="Dimensions (e.g. 12x8x6 in)" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <select id="serviceType" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none bg-white">
-              <option value="Priority Overnight">Priority Overnight</option>
-              <option value="Standard Express">Standard Express</option>
-              <option value="Ground Delivery">Ground Delivery</option>
+            <input type="number" step="0.1" id="weightLbs" placeholder="Weight (lbs)" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none" />
+            <input type="text" id="dimensions" placeholder="Dimensions (e.g. 12x8x6 in)" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none" />
+            <select id="serviceType" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none bg-white">
+              <option value="SwiftTrack Priority Overnight">SwiftTrack Priority Overnight</option>
+              <option value="SwiftTrack Standard Express">SwiftTrack Standard Express</option>
+              <option value="SwiftTrack Ground">SwiftTrack Ground</option>
             </select>
+          </div>
+
+          <!-- Manual Date & Time Inputs -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mt-4">
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Shipping Date & Time (Origin Timestamp)</label>
+              <input type="datetime-local" id="shipDate" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Estimated Delivery Date & Time (ETA)</label>
+              <input type="datetime-local" id="estDeliveryDate" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-swiftPurple outline-none" />
+            </div>
           </div>
         </div>
 
-        <button type="submit" id="submitBtn" class="bg-fedexOrange hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-lg text-sm transition flex items-center justify-center space-x-2">
+        <button type="submit" id="submitBtn" class="bg-swiftOrange hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-lg text-sm transition flex items-center justify-center space-x-2">
           <i class="fa-solid fa-plus-circle"></i> <span>Generate Tracking Code & Create Shipment</span>
         </button>
       </form>
     </section>
 
-    <!-- SECTION 2: SHIPMENT MANAGEMENT & LIVE UPDATES -->
+    <!-- SECTION 2: SHIPMENT MANAGEMENT TABLE -->
     <section class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-      <h2 class="text-xl font-bold text-gray-800 mb-4">Manage Active Shipments</h2>
+      <h2 class="text-xl font-bold text-gray-800 mb-4">Active System Shipments</h2>
       
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
@@ -133,7 +145,7 @@
           </thead>
           <tbody id="shipmentsTableBody" class="divide-y divide-gray-100">
             <tr>
-              <td colspan="5" class="p-4 text-center text-gray-400">Loading shipments...</td>
+              <td colspan="5" class="p-4 text-center text-gray-400">Loading active shipments...</td>
             </tr>
           </tbody>
         </table>
@@ -146,16 +158,16 @@
   <div id="receiptModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative" id="printableReceipt">
       <div class="flex justify-between items-center border-b border-gray-100 pb-3">
-        <div class="text-xl font-black">Swift<span class="text-fedexOrange">Track</span></div>
+        <div class="text-xl font-black">Swift<span class="text-swiftOrange">Track</span></div>
         <div class="text-right">
-          <div class="text-xs font-bold text-gray-400">SHIPMENT RECEIPT</div>
+          <div class="text-xs font-bold text-gray-400">OFFICIAL RECEIPT</div>
           <div id="rcptDate" class="text-[10px] text-gray-500">--</div>
         </div>
       </div>
 
       <div class="bg-purple-50 p-4 rounded-lg text-center border border-purple-100">
         <div class="text-xs text-purple-700 font-semibold uppercase">Tracking Code</div>
-        <div id="rcptTrackingNum" class="text-2xl font-black text-fedexPurple tracking-wider">--</div>
+        <div id="rcptTrackingNum" class="text-2xl font-black text-swiftPurple tracking-wider">--</div>
       </div>
 
       <div class="grid grid-cols-2 gap-4 text-xs">
@@ -179,17 +191,17 @@
 
       <div class="flex justify-between items-center pt-2 print:hidden">
         <button onclick="closeReceiptModal()" class="px-4 py-2 border rounded-lg text-xs font-semibold hover:bg-gray-50">Close</button>
-        <button onclick="window.print()" class="px-4 py-2 bg-fedexPurple text-white rounded-lg text-xs font-bold hover:bg-purple-900 flex items-center gap-1.5">
+        <button onclick="window.print()" class="px-4 py-2 bg-swiftPurple text-white rounded-lg text-xs font-bold hover:bg-purple-900 flex items-center gap-1.5">
           <i class="fa-solid fa-print"></i> Print Receipt
         </button>
       </div>
     </div>
   </div>
 
-  <!-- UPDATE STATUS MODAL -->
+  <!-- UPDATE STATUS & EVENT MODAL WITH CUSTOM DATE/TIME -->
   <div id="updateModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-      <h3 class="text-base font-bold text-gray-800">Update Shipment Location & Status</h3>
+      <h3 class="text-base font-bold text-gray-800">Update Location & Log Event</h3>
       <input type="hidden" id="updateShipmentId" />
       <input type="hidden" id="updateTrackingNum" />
 
@@ -223,14 +235,19 @@
         </div>
 
         <div>
+          <label class="font-semibold block mb-1">Custom Event Date & Time</label>
+          <input type="datetime-local" id="updateEventTime" class="w-full border p-2.5 rounded-lg outline-none" />
+        </div>
+
+        <div>
           <label class="font-semibold block mb-1">Event Description</label>
-          <input type="text" id="updateDescription" placeholder="e.g. Departed sorting center" class="w-full border p-2.5 rounded-lg outline-none" />
+          <input type="text" id="updateDescription" placeholder="e.g. Departed sorting facility" class="w-full border p-2.5 rounded-lg outline-none" />
         </div>
       </div>
 
       <div class="flex justify-end space-x-2 pt-2">
         <button onclick="closeUpdateModal()" class="px-4 py-2 border rounded-lg text-xs font-semibold">Cancel</button>
-        <button onclick="saveShipmentUpdate()" class="px-4 py-2 bg-fedexGreen text-white rounded-lg text-xs font-bold hover:bg-green-700">Save & Notify System</button>
+        <button onclick="saveShipmentUpdate()" class="px-4 py-2 bg-swiftGreen text-white rounded-lg text-xs font-bold hover:bg-green-700">Save & Publish</button>
       </div>
     </div>
   </div>
@@ -240,16 +257,25 @@
     const SUPABASE_KEY = 'sb_publishable_vl_XazGVbpvyobavVnPqUg_VfqGGZ5B';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    window.addEventListener('DOMContentLoaded', fetchAllShipments);
+    window.addEventListener('DOMContentLoaded', () => {
+      // Set default datetime pickers to current local time
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      document.getElementById('shipDate').value = now.toISOString().slice(0, 16);
+      
+      const future = new Date(Date.now() + 86400000 * 3);
+      future.setMinutes(future.getMinutes() - future.getTimezoneOffset());
+      document.getElementById('estDeliveryDate').value = future.toISOString().slice(0, 16);
 
-    // Auto-generate Unique Tracking Code Format: ST-XXXX-XXXX
+      fetchAllShipments();
+    });
+
     function generateTrackingNumber() {
-      const rand1 = Math.floor(1000 + Math.random() * 9000);
-      const rand2 = Math.floor(1000 + Math.random() * 9000);
-      return `ST-${rand1}-${rand2}`;
+      const r1 = Math.floor(1000 + Math.random() * 9000);
+      const r2 = Math.floor(1000 + Math.random() * 9000);
+      return `ST-${r1}-${r2}`;
     }
 
-    // Handle Form Submit
     document.getElementById('createShipmentForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const submitBtn = document.getElementById('submitBtn');
@@ -262,6 +288,9 @@
       const origLng = parseFloat(document.getElementById('originLng').value) || -118.2437;
       const destLat = parseFloat(document.getElementById('destLat').value) || 40.7128;
       const destLng = parseFloat(document.getElementById('destLng').value) || -74.0060;
+
+      const userShipDate = document.getElementById('shipDate').value ? new Date(document.getElementById('shipDate').value).toISOString() : new Date().toISOString();
+      const userEstDelivery = document.getElementById('estDeliveryDate').value ? new Date(document.getElementById('estDeliveryDate').value).toISOString() : new Date(Date.now() + 86400000 * 3).toISOString();
 
       const newShipment = {
         tracking_number: trackingNumber,
@@ -291,7 +320,8 @@
         current_lat: origLat,
         current_lng: origLng,
         current_location: `${document.getElementById('senderCity').value}, ${document.getElementById('senderState').value || ''}`,
-        estimated_delivery: new Date(Date.now() + 86400000 * 3).toISOString()
+        ship_date: userShipDate,
+        estimated_delivery: userEstDelivery
       };
 
       const { data: shipment, error: shipErr } = await supabaseClient
@@ -306,13 +336,14 @@
         return;
       }
 
-      // Add Initial Tracking Event
+      // Add Initial Event with custom timestamp
       await supabaseClient.from('tracking_events').insert([{
         shipment_id: shipment.id,
         tracking_number: trackingNumber,
         status: 'Picked Up',
         location: shipment.current_location,
-        description: 'Package picked up by carrier',
+        description: 'Package received at origin facility',
+        event_time: userShipDate,
         lat: origLat,
         lng: origLng
       }]);
@@ -321,7 +352,6 @@
       submitBtn.innerHTML = '<i class="fa-solid fa-plus-circle"></i> <span>Generate Tracking Code & Create Shipment</span>';
       document.getElementById('createShipmentForm').reset();
 
-      // Show Receipt Modal
       openReceiptModal(shipment);
       fetchAllShipments();
     });
@@ -344,12 +374,12 @@
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-gray-50';
         tr.innerHTML = `
-          <td class="p-3 font-bold text-fedexPurple">${s.tracking_number}</td>
+          <td class="p-3 font-bold text-swiftPurple">${s.tracking_number}</td>
           <td class="p-3">${s.sender_name} (${s.sender_city}) → ${s.recipient_name} (${s.recipient_city})</td>
           <td class="p-3"><span class="bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded text-[10px]">${s.status}</span></td>
           <td class="p-3 text-gray-500">${s.current_location || 'N/A'}</td>
           <td class="p-3 space-x-2">
-            <button onclick="openUpdateModal('${s.id}', '${s.tracking_number}', '${s.status}', '${s.current_location || ''}', '${s.current_lat || ''}', '${s.current_lng || ''}')" class="bg-fedexPurple text-white px-2.5 py-1 rounded text-[10px] font-bold">Update</button>
+            <button onclick="openUpdateModal('${s.id}', '${s.tracking_number}', '${s.status}', '${s.current_location || ''}', '${s.current_lat || ''}', '${s.current_lng || ''}')" class="bg-swiftPurple text-white px-2.5 py-1 rounded text-[10px] font-bold">Update</button>
             <button onclick='openReceiptModal(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="border border-gray-300 text-gray-700 px-2 py-1 rounded text-[10px]">Receipt</button>
           </td>
         `;
@@ -357,15 +387,14 @@
       });
     }
 
-    // Modal Helpers
     function openReceiptModal(shipment) {
-      document.getElementById('rcptDate').innerText = new Date(shipment.created_at || Date.now()).toLocaleDateString();
+      document.getElementById('rcptDate').innerText = new Date(shipment.ship_date || shipment.created_at).toLocaleString();
       document.getElementById('rcptTrackingNum').innerText = shipment.tracking_number;
       document.getElementById('rcptSender').innerText = shipment.sender_name;
       document.getElementById('rcptSenderAddr').innerText = `${shipment.sender_address}, ${shipment.sender_city}, ${shipment.sender_country}`;
       document.getElementById('rcptRecipient').innerText = shipment.recipient_name;
       document.getElementById('rcptRecipientAddr').innerText = `${shipment.recipient_address}, ${shipment.recipient_city}, ${shipment.recipient_country}`;
-      document.getElementById('rcptService').innerText = shipment.service_type || 'Priority Overnight';
+      document.getElementById('rcptService').innerText = shipment.service_type || 'SwiftTrack Priority Overnight';
       document.getElementById('rcptWeight').innerText = `${shipment.weight_lbs} lbs`;
       document.getElementById('rcptType').innerText = shipment.package_type;
 
@@ -383,6 +412,11 @@
       document.getElementById('updateLocation').value = loc;
       document.getElementById('updateLat').value = lat;
       document.getElementById('updateLng').value = lng;
+      
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      document.getElementById('updateEventTime').value = now.toISOString().slice(0, 16);
+
       document.getElementById('updateModal').classList.remove('hidden');
     }
 
@@ -397,21 +431,22 @@
       const location = document.getElementById('updateLocation').value;
       const lat = parseFloat(document.getElementById('updateLat').value) || null;
       const lng = parseFloat(document.getElementById('updateLng').value) || null;
-      const description = document.getElementById('updateDescription').value || `Shipment status updated to ${status}`;
+      const description = document.getElementById('updateDescription').value || `Status updated to ${status}`;
+      
+      const customTime = document.getElementById('updateEventTime').value ? new Date(document.getElementById('updateEventTime').value).toISOString() : new Date().toISOString();
 
-      // Update Shipment Record
       await supabaseClient
         .from('shipments')
-        .update({ status, current_location: location, current_lat: lat, current_lng: lng, updated_at: new Date().toISOString() })
+        .update({ status, current_location: location, current_lat: lat, current_lng: lng, updated_at: customTime })
         .eq('id', id);
 
-      // Insert Travel Event Entry
       await supabaseClient.from('tracking_events').insert([{
         shipment_id: id,
         tracking_number: trackingNum,
         status,
         location,
         description,
+        event_time: customTime,
         lat,
         lng
       }]);
