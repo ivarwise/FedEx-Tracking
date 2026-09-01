@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard | SwiftTrack</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            fedexPurple: '#4D148C',
+            fedexOrange: '#FF6600',
+            fedexBg: '#F7F7F9',
+            fedexGreen: '#008A00',
+            fedexLightGreen: '#E6F4EA',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-fedexBg text-gray-800 font-sans antialiased min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-fedexPurple text-white px-6 py-3 flex items-center justify-between sticky top-0 z-50 shadow">
+    <div class="flex items-center space-x-8">
+      <a href="index.html" class="text-2xl font-black tracking-tighter">
+        <span class="text-white">Swift</span><span class="text-fedexOrange">Track</span>
+      </a>
+      <nav class="hidden md:flex space-x-5 text-sm font-medium">
+        <a href="index.html" class="hover:text-gray-200">Track</a>
+        <a href="dashboard.html" class="border-b-2 border-fedexOrange pb-1 font-bold">Admin Dashboard</a>
+      </nav>
+    </div>
+    <div class="text-sm opacity-90">Connected to your Supabase</div>
+  </header>
+
+  <div class="flex min-h-[calc(100vh-56px)]">
+    
+    <!-- Sidebar -->
+    <aside class="w-60 bg-white border-r border-gray-200 p-4 space-y-1 text-sm font-medium text-gray-700 hidden md:block">
+      <button onclick="showPanel('create')" id="btn-create" class="sidebar-btn flex items-center space-x-3 bg-purple-50 text-fedexPurple p-3 rounded-lg font-bold w-full text-left">
+        <i class="fa-solid fa-plus text-lg"></i>
+        <span>Create Shipment</span>
+      </button>
+      <button onclick="showPanel('list')" id="btn-list" class="sidebar-btn flex items-center space-x-3 hover:bg-gray-50 p-3 rounded-lg w-full text-left transition">
+        <i class="fa-solid fa-boxes-stacked text-lg text-gray-400"></i>
+        <span>All Shipments</span>
+      </button>
+      <button onclick="showPanel('stats')" id="btn-stats" class="sidebar-btn flex items-center space-x-3 hover:bg-gray-50 p-3 rounded-lg w-full text-left transition">
+        <i class="fa-solid fa-chart-simple text-lg text-gray-400"></i>
+        <span>Overview</span>
+      </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6 max-w-6xl">
+
+      <!-- ========== CREATE SHIPMENT PANEL ========== -->
+      <div id="panel-create" class="panel">
+        <h1 class="text-2xl font-bold mb-1">Create New Shipment</h1>
+        <p class="text-gray-500 text-sm mb-6">Fill the details. A real tracking number and receipt will be generated automatically.</p>
+
+        <div id="createAlert" class="hidden mb-4"></div>
+
+        <form id="createForm" class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-8">
+          
+          <!-- Sender + Recipient -->
+          <div class="grid md:grid-cols-2 gap-8">
+            <!-- Sender -->
+            <div>
+              <h3 class="font-bold text-fedexPurple mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-arrow-up"></i> Sender (Origin)
+              </h3>
+              <div class="space-y-3">
+                <div>
+                  <label class="text-xs font-semibold text-gray-500 uppercase">Full Name *</label>
+                  <input type="text" name="sender_name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="John Smith">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="text-xs font-semibold text-gray-500 uppercase">Phone</label>
+                    <input type="tel" name="sender_phone" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple">
+                  </div>
+                  <div>
+                    <label class="text-xs font-semibold text-gray-500 uppercase">Email</label>
+                    <input type="email" name="sender_email" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple">
+                  </div>
+                </div>
+                <div>
+                  <label class="text-xs font-semibold text-gray-500 uppercase">Street Address *</label>
+                  <input type="text" name="sender_address" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="123 Main St">
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                  <div>
+                    <label class="text-xs font-semibold text-gray-500 uppercase">City *</label>
+                    <input type="text" name="sender_city" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="Los Angeles">
+                  </div>
+                  <div>
+                    <label class="text-xs font-semibold text-gray-500 uppercase">State</label>
+                    <input type="text" name="sender_state" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="CA">
+                  </div>
+                  <div>
+                    <label class="text-xs font-semibold text-gray-500 uppercase">ZIP</label>
+                    <input type="text" name="sender_zip" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="90001">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recipient -->
+            <div>
+              <h3 class="font-bold text-fedexPurple mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-arrow-down"></i> Recipient (Destination)
+              </h3>
+              <div class="space-y-3">
+                <div>
+                  <label class="text-xs font-semibold text-gray-500 uppercase">Full Name *</label>
+                  <input type="text" name="recipient_name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="Jane Doe">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="text-xs font-semibold text-gray-500 uppercase">Phone</label>
+                    <input type="tel" name="recipient_phone" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple">
+                  </div>
+                  <div>
+                    <label class="text-xs font-semibold text-gray-500 uppercase">Email</label>
+                    <input type="email" name="recipient_email" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple">
+                  </div>
+                </div>
+                <div>
+                  <label class="text-xs font-semibold text-gray-500 uppercase">Street Address *</label>
+                  <input type="text" name="recipient_address" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="456 Park Ave">
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                  <div>
+                    <label class="text-xs font-semibold text-gray-500 uppercase">City *</label>
+                    <input type="text" name="recipient_city" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="New York">
+                  </div>
+                  <div>
+                    <label class="text-xs font-semibold text-gray-500 uppercase">State</label>
+                    <input type="text" name="recipient_state" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="NY">
+                  </div>
+                  <div>
+                    <label class="text-xs font-semibold text-gray-500 uppercase">ZIP</label>
+                    <input type="text" name="recipient_zip" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="10001">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Package -->
+          <div>
+            <h3 class="font-bold text-fedexPurple mb-4 flex items-center gap-2">
+              <i class="fa-solid fa-box"></i> Package & Service
+            </h3>
+            <div class="grid md:grid-cols-4 gap-4">
+              <div>
+                <label class="text-xs font-semibold text-gray-500 uppercase">Package Type</label>
+                <select name="package_type" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple">
+                  <option>Package</option>
+                  <option>Envelope</option>
+                  <option>Box</option>
+                  <option>Pallet</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-gray-500 uppercase">Service</label>
+                <select name="service_type" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple">
+                  <option>Priority Overnight</option>
+                  <option>Standard Overnight</option>
+                  <option>2Day</option>
+                  <option>Express Saver</option>
+                  <option>Ground</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-gray-500 uppercase">Weight (lbs)</label>
+                <input type="number" name="weight_lbs" step="0.01" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="2.50">
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-gray-500 uppercase">Dimensions</label>
+                <input type="text" name="dimensions" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="12 x 8 x 6 in">
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <button type="reset" class="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-semibold hover:bg-gray-50">Clear</button>
+            <button type="submit" id="createBtn" class="bg-fedexPurple text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-purple-900 transition">
+              Create Shipment & Generate Tracking #
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ========== ALL SHIPMENTS PANEL ========== -->
+      <div id="panel-list" class="panel hidden">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h1 class="text-2xl font-bold">All Shipments</h1>
+            <p class="text-gray-500 text-sm">Real data from your database</p>
+          </div>
+          <button onclick="loadShipments()" class="text-sm font-semibold text-fedexPurple hover:underline">
+            <i class="fa-solid fa-rotate"></i> Refresh
+          </button>
+        </div>
+
+        <div class="mb-4">
+          <input type="text" id="searchShipments" placeholder="Search by tracking number, name or city..." class="w-full max-w-md border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-fedexPurple">
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase">
+              <tr>
+                <th class="px-4 py-3">Tracking #</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3">From → To</th>
+                <th class="px-4 py-3">Ship Date</th>
+                <th class="px-4 py-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="shipmentsTable" class="divide-y divide-gray-100">
+              <tr><td colspan="5" class="px-4 py-10 text-center text-gray-400">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========== OVERVIEW PANEL ========== -->
+      <div id="panel-stats" class="panel hidden">
+        <h1 class="text-2xl font-bold mb-6">Overview</h1>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="statsRow">
+          <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <div class="text-xs font-semibold text-gray-400 uppercase">Total</div>
+            <div class="text-3xl font-bold mt-1" id="statTotal">—</div>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <div class="text-xs font-semibold text-gray-400 uppercase">In Transit</div>
+            <div class="text-3xl font-bold mt-1 text-fedexPurple" id="statTransit">—</div>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <div class="text-xs font-semibold text-gray-400 uppercase">Delivered</div>
+            <div class="text-3xl font-bold mt-1 text-fedexGreen" id="statDelivered">—</div>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <div class="text-xs font-semibold text-gray-400 uppercase">Pending</div>
+            <div class="text-3xl font-bold mt-1" id="statPending">—</div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- UPDATE MODAL -->
+  <div id="updateModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl w-full max-w-md mx-4 shadow-xl">
+      <div class="flex items-center justify-between px-6 py-4 border-b">
+        <h3 class="font-bold text-lg">Update Shipment</h3>
+        <button onclick="closeUpdateModal()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+      </div>
+      <div class="p-6 space-y-4">
+        <p class="text-sm text-gray-500">Tracking: <strong id="modalTracking" class="text-fedexPurple"></strong></p>
+        <input type="hidden" id="modalShipmentId">
+
+        <div>
+          <label class="text-xs font-semibold text-gray-500 uppercase">Status</label>
+          <select id="modalStatus" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple">
+            <option>Pending</option>
+            <option>Picked Up</option>
+            <option>Processing</option>
+            <option>In Transit</option>
+            <option>Arrived at Facility</option>
+            <option>Out for Delivery</option>
+            <option>Delivered</option>
+            <option>Exception</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-500 uppercase">Current Location (City, State)</label>
+          <input type="text" id="modalLocation" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="Memphis, TN">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-500 uppercase">Description / Note</label>
+          <input type="text" id="modalDescription" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="Departed FedEx location">
+        </div>
+      </div>
+      <div class="px-6 py-4 border-t flex justify-end gap-3">
+        <button onclick="closeUpdateModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-semibold">Cancel</button>
+        <button onclick="saveUpdate()" id="saveUpdateBtn" class="bg-fedexPurple text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-purple-900">Save Update</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
