@@ -3,12 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FedEx Tracking - Package Tracking Portal</title>
+  <title>FedEx Tracking</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  
+  <!-- Leaflet CSS & JS for Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Turf.js for smooth curved route calculation -->
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
 
   <script>
     tailwind.config = {
@@ -17,413 +22,429 @@
           colors: {
             fedexPurple: '#4D148C',
             fedexOrange: '#FF6600',
-            fedexBg: '#F7F7F9',
+            fedexBg: '#F4F4F7',
             fedexGreen: '#008A00',
-            fedexLightGreen: '#E6F4EA',
+            fedexGreenBg: '#E6F4E6',
+            fedexHeaderPurple: '#330066',
           }
         }
       }
     }
   </script>
   <style>
-    .leaflet-container { font-family: inherit; z-index: 10; }
+    .leaflet-control-attribution { display: none !important; }
   </style>
 </head>
-<body class="bg-fedexBg text-gray-800 font-sans antialiased min-h-screen">
+<body class="bg-fedexBg text-gray-800 font-sans pb-20">
 
-  <!-- Top Navigation Header -->
-  <header class="bg-fedexPurple text-white px-6 py-4 flex justify-between items-center shadow-md border-b border-purple-900 sticky top-0 z-50">
-    <div class="flex items-center space-x-8">
-      <div class="text-2xl font-black tracking-tighter cursor-pointer">
-        <span>Fed</span><span class="text-fedexOrange">Ex</span>
+  <!-- TOP APP HEADER -->
+  <header class="bg-white px-4 py-3 flex justify-between items-center border-b sticky top-0 z-30">
+    <div class="flex items-center space-x-3">
+      <button class="text-gray-700 text-lg"><i class="fa-solid fa-bars"></i></button>
+      <div class="text-2xl font-black tracking-tighter text-fedexPurple">
+        <span>Fed</span><span class="text-fedexOrange">Ex</span><span class="text-xs align-super text-fedexOrange">®</span>
       </div>
-      <nav class="hidden md:flex space-x-6 text-sm font-semibold">
-        <a href="#" class="text-white border-b-2 border-fedexOrange pb-1">Tracking</a>
-        <a href="#" class="text-purple-200 hover:text-white transition">Shipping Services</a>
-        <a href="#" class="text-purple-200 hover:text-white transition">Locations</a>
-        <a href="#" class="text-purple-200 hover:text-white transition">Help Center</a>
-      </nav>
     </div>
-    <div class="text-xs font-semibold text-purple-200">
-      <i class="fa-solid fa-headset mr-1"></i> FedEx Customer Support
+    <div class="flex items-center space-x-4 text-gray-700 text-lg">
+      <i class="fa-solid fa-globe"></i>
+      <i class="fa-regular fa-user"></i>
     </div>
   </header>
 
-  <!-- Sidebar & Main Container Layout -->
-  <div class="max-w-[1500px] mx-auto grid grid-cols-1 md:grid-cols-12 min-h-[calc(100vh-65px)]">
-    
-    <!-- Left Navigation Bar -->
-    <aside class="hidden md:block md:col-span-2 bg-white border-r border-gray-200 p-4 space-y-2 text-xs font-medium text-gray-600">
-      <a href="#" class="flex items-center space-x-3 p-3 rounded-lg bg-purple-50 text-fedexPurple font-bold">
-        <i class="fa-solid fa-box text-sm"></i> <span>Track a Shipment</span>
-      </a>
-      <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition">
-        <i class="fa-solid fa-calculator text-sm"></i> <span>Shipping Rates</span>
-      </a>
-      <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition">
-        <i class="fa-solid fa-clock text-sm"></i> <span>Schedule Pickup</span>
-      </a>
-    </aside>
+  <main class="max-w-xl mx-auto p-4 space-y-4">
 
-    <!-- Main Content Panel -->
-    <main class="col-span-1 md:col-span-10 p-4 md:p-8 space-y-6">
+    <!-- SEARCH INPUT BAR -->
+    <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-2">
+      <input type="text" id="searchInput" placeholder="Enter Tracking Number..." class="w-full text-sm outline-none px-2 font-semibold text-gray-700" />
+      <button onclick="performTrack()" class="bg-fedexHeaderPurple hover:bg-purple-950 text-white font-bold text-xs px-5 py-2.5 rounded-lg transition">Track</button>
+    </div>
+
+    <!-- MAIN TRACKING CARD -->
+    <div class="bg-fedexHeaderPurple text-white rounded-2xl p-5 shadow-lg space-y-5">
       
-      <!-- Top Title & Search Line -->
-      <div class="space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <h1 class="text-2xl font-black text-gray-900 flex items-center gap-2">
-            Tracking # <span id="dtTrackingNum" class="text-fedexPurple">--</span>
-          </h1>
-          <button onclick="window.print()" class="text-xs font-semibold text-gray-600 hover:text-fedexPurple flex items-center gap-1.5 border bg-white px-3 py-1.5 rounded-md self-start sm:self-auto shadow-sm">
-            <i class="fa-solid fa-print"></i> Print Details
-          </button>
+      <!-- TOP TRACKING # & SHARE -->
+      <div class="flex justify-between items-start">
+        <div>
+          <div class="text-[10px] font-bold tracking-widest text-purple-200 uppercase">TRACKING #</div>
+          <div id="displayTrackingNum" class="text-2xl font-black tracking-wider mt-0.5">7724 5387 9012</div>
         </div>
-
-        <!-- Tracking Search Box -->
-        <form id="searchForm" class="flex max-w-xl space-x-2">
-          <input 
-            type="text" 
-            id="trackingInput" 
-            placeholder="Enter tracking code (e.g. FX-1234-5678)..." 
-            class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 text-sm font-medium focus:ring-2 focus:ring-fedexPurple outline-none bg-white shadow-sm"
-            required
-          />
-          <button type="submit" class="bg-fedexPurple hover:bg-purple-900 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition shadow-sm">
-            Track
-          </button>
-        </form>
+        <button class="bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 border border-white/20">
+          <i class="fa-solid fa-share-nodes"></i> Share
+        </button>
       </div>
 
-      <!-- Loading State -->
-      <div id="loadingState" class="hidden text-center py-16">
-        <i class="fa-solid fa-circle-notch fa-spin text-4xl text-fedexPurple"></i>
-        <p class="mt-3 text-sm font-semibold text-gray-600">Retrieving real-time package status...</p>
+      <!-- STATUS BADGES -->
+      <div class="space-y-1">
+        <div class="flex items-center space-x-2">
+          <span id="displayStatusBadge" class="bg-fedexGreenBg text-fedexGreen text-[11px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">IN TRANSIT</span>
+          <span id="displayStatusSubtitle" class="text-sm font-semibold text-white">On the way to delivery</span>
+        </div>
+        <div class="text-xs text-purple-200 pt-1">Estimated delivery</div>
+        <div class="flex items-baseline space-x-2">
+          <span id="displayEstimatedDelivery" class="text-xl font-bold text-green-400">May 26, 2025 by 8:00 PM</span>
+          <span class="text-xs text-purple-200 font-medium">On time</span>
+        </div>
       </div>
 
-      <!-- Error State -->
-      <div id="errorState" class="hidden bg-white p-8 rounded-xl border border-gray-200 text-center max-w-md mx-auto shadow-sm">
-        <i class="fa-solid fa-triangle-exclamation text-3xl text-red-500 mb-2"></i>
-        <h3 class="font-bold text-gray-800" id="errorMessage">Tracking Code Not Found</h3>
-        <p class="text-xs text-gray-500 mt-1">Please check your tracking number and try again.</p>
-      </div>
+      <!-- STEP PROGRESS BAR WITH CONNECTING LINES -->
+      <div class="pt-2">
+        <div class="relative flex items-center justify-between">
+          <!-- Background Line -->
+          <div class="absolute top-1/2 left-4 right-4 -translate-y-1/2 h-1 bg-purple-900 z-0"></div>
+          <!-- Active Line -->
+          <div id="progressActiveLine" class="absolute top-1/2 left-4 -translate-y-1/2 h-1 bg-fedexGreen transition-all duration-500 z-0" style="width: 33%;"></div>
 
-      <!-- Main Tracking Overview Section -->
-      <div id="dashboardContent" class="space-y-6 hidden">
-        
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          <!-- Status Card -->
-          <div class="lg:col-span-7 bg-white rounded-xl border border-gray-200 p-6 shadow-sm flex flex-col justify-between space-y-6">
-            <div>
-              <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Estimated Delivery</div>
-              <div id="dtEstDelivery" class="text-2xl font-black text-fedexGreen mt-1">--</div>
-
-              <!-- Progress Timeline Bar -->
-              <div class="my-6 relative">
-                <div class="h-2 bg-gray-200 rounded-full w-full"></div>
-                <div id="dtProgressBar" class="h-2 bg-fedexGreen rounded-full absolute top-0 left-0 transition-all duration-500" style="width: 25%;"></div>
-                <div class="flex justify-between absolute -top-1 w-full">
-                  <span class="w-4 h-4 bg-fedexGreen border-2 border-white rounded-full"></span>
-                  <span id="step2Dot" class="w-4 h-4 bg-gray-300 border-2 border-white rounded-full"></span>
-                  <span id="step3Dot" class="w-4 h-4 bg-gray-300 border-2 border-white rounded-full"></span>
-                  <span id="step4Dot" class="w-4 h-4 bg-gray-300 border-2 border-white rounded-full"></span>
-                </div>
-              </div>
-
-              <div class="flex items-center justify-between">
-                <div>
-                  <span id="dtStatusBadge" class="bg-fedexLightGreen text-fedexGreen font-bold text-xs px-3 py-1 rounded-full inline-block">IN TRANSIT</span>
-                  <div id="dtCurrentLocation" class="text-sm font-bold text-gray-800 mt-2">--</div>
-                </div>
-              </div>
+          <!-- Step 1: Picked Up -->
+          <div class="relative z-10 flex flex-col items-center">
+            <div id="stepIcon1" class="w-8 h-8 rounded-full bg-fedexGreen text-white flex items-center justify-center text-xs shadow-md">
+              <i class="fa-solid fa-box"></i>
             </div>
-
-            <!-- Sender & Recipient Grid -->
-            <div class="border-t border-gray-100 pt-4 grid grid-cols-2 gap-4 text-xs">
-              <div>
-                <span class="text-gray-400 font-bold block uppercase text-[10px]">FROM</span>
-                <span id="dtSender" class="font-bold block text-gray-800">--</span>
-                <span id="dtOriginCity" class="text-gray-500 block">--</span>
-              </div>
-              <div>
-                <span class="text-gray-400 font-bold block uppercase text-[10px]">TO</span>
-                <span id="dtRecipient" class="font-bold block text-gray-800">--</span>
-                <span id="dtDestCity" class="text-gray-500 block">--</span>
-              </div>
-            </div>
+            <span class="text-[10px] font-semibold text-purple-200 mt-1.5">Picked up</span>
           </div>
 
-          <!-- Route Map -->
-          <div class="lg:col-span-5 bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm relative min-h-[300px]">
-            <div id="desktopMap" class="w-full h-full min-h-[300px]"></div>
+          <!-- Step 2: In Transit -->
+          <div class="relative z-10 flex flex-col items-center">
+            <div id="stepIcon2" class="w-8 h-8 rounded-full bg-fedexGreen text-white flex items-center justify-center text-xs shadow-md ring-4 ring-fedexHeaderPurple">
+              <i class="fa-solid fa-truck"></i>
+            </div>
+            <span class="text-[10px] font-semibold text-purple-200 mt-1.5">In transit</span>
+          </div>
+
+          <!-- Step 3: Out for Delivery -->
+          <div class="relative z-10 flex flex-col items-center">
+            <div id="stepIcon3" class="w-8 h-8 rounded-full bg-purple-900 text-purple-300 flex items-center justify-center text-xs border border-purple-700">
+              <i class="fa-solid fa-location-dot"></i>
+            </div>
+            <span class="text-[10px] font-semibold text-purple-300 mt-1.5">Out for delivery</span>
+          </div>
+
+          <!-- Step 4: Delivered -->
+          <div class="relative z-10 flex flex-col items-center">
+            <div id="stepIcon4" class="w-8 h-8 rounded-full bg-purple-900 text-purple-300 flex items-center justify-center text-xs border border-purple-700">
+              <i class="fa-solid fa-check"></i>
+            </div>
+            <span class="text-[10px] font-semibold text-purple-300 mt-1.5">Delivered</span>
           </div>
         </div>
-
-        <!-- Travel History & Package Specs -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          <div class="lg:col-span-8 bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-4">
-            <h3 class="font-bold text-base text-gray-800 border-b border-gray-100 pb-3">Travel History</h3>
-            <div id="dtTravelHistory" class="space-y-4">
-              <!-- Dynamic Events -->
-            </div>
-          </div>
-
-          <div class="lg:col-span-4 bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-4 text-xs">
-            <h3 class="font-bold text-base text-gray-800 border-b border-gray-100 pb-3">Shipment Details</h3>
-            
-            <div class="flex justify-between py-1 border-b border-gray-50">
-              <span class="text-gray-400">Tracking Code</span>
-              <span id="dtSpecTracking" class="font-bold text-gray-800">--</span>
-            </div>
-            <div class="flex justify-between py-1 border-b border-gray-50">
-              <span class="text-gray-400">Shipped On</span>
-              <span id="dtShipDate" class="font-bold text-gray-800">--</span>
-            </div>
-            <div class="flex justify-between py-1 border-b border-gray-50">
-              <span class="text-gray-400">Service</span>
-              <span id="dtService" class="font-bold text-gray-800">--</span>
-            </div>
-            <div class="flex justify-between py-1 border-b border-gray-50">
-              <span class="text-gray-400">Weight</span>
-              <span id="dtWeight" class="font-bold text-gray-800">--</span>
-            </div>
-            <div class="flex justify-between py-1 border-b border-gray-50">
-              <span class="text-gray-400">Packaging</span>
-              <span id="dtPkgType" class="font-bold text-gray-800">--</span>
-            </div>
-            <div class="flex justify-between py-1 border-b border-gray-50">
-              <span class="text-gray-400">Dimensions</span>
-              <span id="dtDimensions" class="font-bold text-gray-800">--</span>
-            </div>
-          </div>
-
-        </div>
-
       </div>
 
-    </main>
-  </div>
+    </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- FROM / TO CARD -->
+    <div class="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm grid grid-cols-2 gap-2 relative">
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-100 border rounded-full w-7 h-7 flex items-center justify-center text-gray-500 text-xs">
+        <i class="fa-solid fa-arrow-right"></i>
+      </div>
+      <div>
+        <div class="text-[10px] font-bold text-gray-400 uppercase">FROM</div>
+        <div id="displayFromCity" class="text-xs font-bold text-gray-900 mt-0.5">Los Angeles, CA 90001</div>
+        <div id="displayFromCountry" class="text-[11px] text-gray-500">United States</div>
+      </div>
+      <div class="pl-4">
+        <div class="text-[10px] font-bold text-gray-400 uppercase">TO</div>
+        <div id="displayToCity" class="text-xs font-bold text-gray-900 mt-0.5">New York, NY 10001</div>
+        <div id="displayToCountry" class="text-[11px] text-gray-500">United States</div>
+      </div>
+    </div>
+
+    <!-- MAP CONTAINER WITH CURVED ROUTE & TRUCK MARKER -->
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm relative">
+      <div id="map" class="w-full h-56 z-10"></div>
+    </div>
+
+    <!-- SHIPMENT SPECS -->
+    <div class="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm grid grid-cols-3 gap-3 text-xs">
+      <div>
+        <div class="text-[9px] font-bold text-gray-400 uppercase">SERVICE</div>
+        <div id="displayService" class="font-bold text-gray-800 mt-0.5">FedEx Priority Overnight</div>
+      </div>
+      <div>
+        <div class="text-[9px] font-bold text-gray-400 uppercase">WEIGHT</div>
+        <div id="displayWeight" class="font-bold text-gray-800 mt-0.5">2.50 lbs / 1.13 kg</div>
+      </div>
+      <div>
+        <div class="text-[9px] font-bold text-gray-400 uppercase">SHIP DATE</div>
+        <div id="displayShipDate" class="font-bold text-gray-800 mt-0.5">May 23, 2025</div>
+      </div>
+    </div>
+
+    <!-- TRAVEL HISTORY -->
+    <div class="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm space-y-3">
+      <div class="flex justify-between items-center border-b pb-2">
+        <span class="text-xs font-bold text-gray-900 uppercase">TRAVEL HISTORY</span>
+        <span class="text-xs font-semibold text-fedexPurple">View all</span>
+      </div>
+      <div id="travelHistoryList" class="space-y-4 pt-1">
+        <!-- Events injected via JS -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- BOTTOM NAVIGATION BAR -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t py-2 px-6 flex justify-between items-center z-30 text-center text-xs font-medium text-gray-500">
+    <div class="text-fedexPurple font-bold flex flex-col items-center">
+      <i class="fa-solid fa-location-arrow text-base mb-0.5"></i>
+      <span>Track</span>
+    </div>
+    <div class="flex flex-col items-center hover:text-fedexPurple">
+      <i class="fa-solid fa-box text-base mb-0.5"></i>
+      <span>Ship</span>
+    </div>
+    <div class="flex flex-col items-center hover:text-fedexPurple">
+      <i class="fa-solid fa-location-dot text-base mb-0.5"></i>
+      <span>Locations</span>
+    </div>
+    <div class="flex flex-col items-center hover:text-fedexPurple">
+      <i class="fa-solid fa-circle-question text-base mb-0.5"></i>
+      <span>Support</span>
+    </div>
+    <div class="flex flex-col items-center hover:text-fedexPurple">
+      <i class="fa-regular fa-circle-user text-base mb-0.5"></i>
+      <span>Account</span>
+    </div>
+  </nav>
+
   <script>
     const SUPABASE_URL = 'https://oyaeazydvudevjbwtwtt.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_vl_XazGVbpvyobavVnPqUg_VfqGGZ5B';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let mapInstance = null;
-    let truckMarker = null;
-    let activeChannel = null;
+    let map;
 
-    const DEFAULT_LAT = 39.8283;
-    const DEFAULT_LNG = -98.5795;
+    // Coordinate lookup dictionary for US cities
+    const CITY_COORDS = {
+      'Los Angeles': [34.0522, -118.2437],
+      'New York': [40.7128, -74.0060],
+      'Memphis': [35.1495, -90.0490],
+      'Indianapolis': [39.7684, -86.1581],
+      'Chicago': [41.8781, -87.6298],
+      'Dallas': [32.7767, -96.7970],
+      'Atlanta': [33.7490, -84.3880],
+      'Denver': [39.7392, -104.9903],
+      'Seattle': [47.6062, -122.3321],
+      'Miami': [25.7617, -80.1918]
+    };
 
     window.addEventListener('DOMContentLoaded', () => {
+      initMap();
       const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code') || urlParams.get('tracking');
+      const code = urlParams.get('code');
       if (code) {
-        document.getElementById('trackingInput').value = code;
-        fetchShipmentData(code);
+        document.getElementById('searchInput').value = code;
+        fetchTrackingData(code);
+      } else {
+        fetchTrackingData('772453879012');
       }
     });
 
-    document.getElementById('searchForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const code = document.getElementById('trackingInput').value.trim();
-      if (code) fetchShipmentData(code);
-    });
+    function initMap() {
+      map = L.map('map', { zoomControl: false }).setView([39.8283, -98.5795], 4);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 18
+      }).addTo(map);
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+    }
 
-    async function fetchShipmentData(code) {
-      showLoading();
+    function getCoords(cityName) {
+      if (!cityName) return [34.0522, -118.2437];
+      for (const key in CITY_COORDS) {
+        if (cityName.toLowerCase().includes(key.toLowerCase())) {
+          return CITY_COORDS[key];
+        }
+      }
+      return [35.1495, -90.0490]; // Default Memphis hub
+    }
 
-      const { data: shipment, error } = await supabaseClient
+    function renderCurvedRoute(fromCity, toCity, currentCity) {
+      const start = getCoords(fromCity);
+      const end = getCoords(toCity);
+      const current = getCoords(currentCity);
+
+      // Clear existing layers
+      map.eachLayer((layer) => {
+        if (layer instanceof L.Marker || layer instanceof L.Polyline || layer instanceof L.GeoJSON) {
+          map.removeLayer(layer);
+        }
+      });
+
+      // Generate curved polyline using Turf.js bezier curve
+      const line = turf.lineString([[start[1], start[0]], [current[1], current[0]], [end[1], end[0]]]);
+      const curved = turf.bezierSpline(line);
+
+      L.geoJSON(curved, {
+        style: { color: '#4D148C', weight: 4, opacity: 0.85 }
+      }).addTo(map);
+
+      // Custom Purple Pin Icons for Origin & Destination
+      const pinIcon = L.divIcon({
+        html: `<div style="color: #4D148C; font-size: 20px;"><i class="fa-solid fa-location-dot"></i></div>`,
+        className: '',
+        iconSize: [20, 20],
+        iconAnchor: [10, 20]
+      });
+
+      L.marker(start, { icon: pinIcon }).addTo(map);
+      L.marker(end, { icon: pinIcon }).addTo(map);
+
+      // Custom Purple Truck Circle Marker for Current Location
+      const truckIcon = L.divIcon({
+        html: `
+          <div style="background-color: #4D148C; color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
+            <i class="fa-solid fa-truck" style="font-size: 14px;"></i>
+          </div>`,
+        className: '',
+        iconSize: [34, 34],
+        iconAnchor: [17, 17]
+      });
+
+      const currentMarker = L.marker(current, { icon: truckIcon }).addTo(map);
+      currentMarker.bindPopup(`<b>Current Location</b><br>${currentCity}`).openPopup();
+
+      map.fitBounds([start, end], { padding: [30, 30] });
+    }
+
+    function updateProgressBar(status) {
+      const s1 = document.getElementById('stepIcon1');
+      const s2 = document.getElementById('stepIcon2');
+      const s3 = document.getElementById('stepIcon3');
+      const s4 = document.getElementById('stepIcon4');
+      const line = document.getElementById('progressActiveLine');
+
+      const greenClass = "w-8 h-8 rounded-full bg-fedexGreen text-white flex items-center justify-center text-xs shadow-md";
+      const inactiveClass = "w-8 h-8 rounded-full bg-purple-900 text-purple-300 flex items-center justify-center text-xs border border-purple-700";
+
+      if (status === 'Delivered') {
+        s1.className = greenClass; s2.className = greenClass; s3.className = greenClass; s4.className = greenClass;
+        line.style.width = '100%';
+      } else if (status === 'Out for Delivery') {
+        s1.className = greenClass; s2.className = greenClass; s3.className = greenClass; s4.className = inactiveClass;
+        line.style.width = '66%';
+      } else if (status === 'In Transit') {
+        s1.className = greenClass; s2.className = greenClass; s3.className = inactiveClass; s4.className = inactiveClass;
+        line.style.width = '33%';
+      } else {
+        s1.className = greenClass; s2.className = inactiveClass; s3.className = inactiveClass; s4.className = inactiveClass;
+        line.style.width = '0%';
+      }
+    }
+
+    function performTrack() {
+      const code = document.getElementById('searchInput').value.trim();
+      if (code) fetchTrackingData(code);
+    }
+
+    async function fetchTrackingData(trackingNum) {
+      const formatted = trackingNum.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3');
+      document.getElementById('displayTrackingNum').innerText = formatted;
+
+      const { data: shipment } = await supabaseClient
         .from('shipments')
         .select('*')
-        .eq('tracking_number', code)
+        .eq('tracking_number', trackingNum)
         .single();
 
-      if (error || !shipment) {
-        showError(`No shipment found matching "${code}"`);
+      if (!shipment) {
+        document.getElementById('displayStatusBadge').innerText = 'IN TRANSIT';
+        document.getElementById('displayStatusSubtitle').innerText = 'On the way to delivery';
+        document.getElementById('displayEstimatedDelivery').innerText = 'May 26, 2025 by 8:00 PM';
+        document.getElementById('displayFromCity').innerText = 'Los Angeles, CA 90001';
+        document.getElementById('displayToCity').innerText = 'New York, NY 10001';
+        renderCurvedRoute('Los Angeles', 'New York', 'Memphis');
+        updateProgressBar('In Transit');
+        renderDefaultHistory();
         return;
       }
 
+      const status = shipment.status || 'In Transit';
+      document.getElementById('displayStatusBadge').innerText = status.toUpperCase();
+      document.getElementById('displayStatusSubtitle').innerText = status === 'Delivered' ? 'Package delivered successfully' : 'On the way to delivery';
+      document.getElementById('displayEstimatedDelivery').innerText = shipment.expected_delivery_text || 'May 26, 2025 by 8:00 PM';
+
+      document.getElementById('displayFromCity').innerText = `${shipment.sender_city}, ${shipment.sender_state || ''}`;
+      document.getElementById('displayFromCountry').innerText = shipment.sender_country || 'United States';
+      document.getElementById('displayToCity').innerText = `${shipment.recipient_city}, ${shipment.recipient_state || ''}`;
+      document.getElementById('displayToCountry').innerText = shipment.recipient_country || 'United States';
+
+      document.getElementById('displayService').innerText = shipment.service_type || 'FedEx Priority Overnight';
+      document.getElementById('displayWeight').innerText = shipment.weight_display || '2.50 lbs / 1.13 kg';
+      document.getElementById('displayShipDate').innerText = shipment.ship_date_text || 'May 23, 2025';
+
+      updateProgressBar(status);
+      renderCurvedRoute(shipment.sender_city, shipment.recipient_city, shipment.current_location || shipment.sender_city);
+
+      // Fetch Events
       const { data: events } = await supabaseClient
         .from('tracking_events')
         .select('*')
         .eq('shipment_id', shipment.id)
         .order('event_time', { ascending: false });
 
-      renderDashboard(shipment, events || []);
-      listenToRealtime(shipment.id);
-    }
-
-    function renderDashboard(shipment, events) {
-      showDashboard();
-
-      document.getElementById('dtTrackingNum').innerText = shipment.tracking_number;
-      document.getElementById('dtSpecTracking').innerText = shipment.tracking_number;
-      document.getElementById('dtStatusBadge').innerText = shipment.status.toUpperCase();
-      document.getElementById('dtCurrentLocation').innerText = shipment.current_location || 'In Transit';
-
-      const estDate = shipment.estimated_delivery ? new Date(shipment.estimated_delivery).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : 'Pending';
-      document.getElementById('dtEstDelivery').innerText = estDate;
-
-      const shipDate = shipment.ship_date ? new Date(shipment.ship_date).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A';
-      document.getElementById('dtShipDate').innerText = shipDate;
-
-      document.getElementById('dtSender').innerText = shipment.sender_name;
-      document.getElementById('dtOriginCity').innerText = `${shipment.sender_city}, ${shipment.sender_state || ''} ${shipment.sender_country}`;
-      document.getElementById('dtRecipient').innerText = shipment.recipient_name;
-      document.getElementById('dtDestCity').innerText = `${shipment.recipient_city}, ${shipment.recipient_state || ''} ${shipment.recipient_country}`;
-
-      document.getElementById('dtService').innerText = shipment.service_type || 'FedEx Priority Overnight';
-      document.getElementById('dtWeight').innerText = `${shipment.weight_lbs || 0} lbs`;
-      document.getElementById('dtPkgType').innerText = shipment.package_type || 'Package';
-      document.getElementById('dtDimensions').innerText = shipment.dimensions || 'N/A';
-
-      updateProgressBar(shipment.status);
       renderEvents(events);
-
-      const curLat = parseFloat(shipment.current_lat) || DEFAULT_LAT;
-      const curLng = parseFloat(shipment.current_lng) || DEFAULT_LNG;
-      const origLat = parseFloat(shipment.origin_lat) || curLat;
-      const origLng = parseFloat(shipment.origin_lng) || curLng;
-      const destLat = parseFloat(shipment.dest_lat) || curLat;
-      const destLng = parseFloat(shipment.dest_lng) || curLng;
-
-      initMap(curLat, curLng, origLat, origLng, destLat, destLng);
     }
 
     function renderEvents(events) {
-      const container = document.getElementById('dtTravelHistory');
+      const container = document.getElementById('travelHistoryList');
       container.innerHTML = '';
 
       if (!events || events.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400">No events logged yet.</p>';
+        renderDefaultHistory();
         return;
       }
 
-      events.forEach((evt, idx) => {
-        const isLatest = idx === 0;
-        const timeStr = new Date(evt.event_time).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' });
-        
-        const div = document.createElement('div');
-        div.className = `flex items-start space-x-4 p-3 rounded-lg border ${isLatest ? 'bg-fedexLightGreen border-green-200' : 'border-gray-100'}`;
-        div.innerHTML = `
-          <div class="w-32 text-right text-xs ${isLatest ? 'font-bold text-fedexGreen' : 'text-gray-400'}">${timeStr}</div>
-          <div class="w-5 h-5 rounded-full ${isLatest ? 'bg-fedexGreen' : 'bg-gray-300'} text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5">
-            <i class="fa-solid ${isLatest ? 'fa-truck' : 'fa-circle'}"></i>
+      events.forEach((ev, idx) => {
+        const dateStr = new Date(ev.event_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const timeStr = new Date(ev.event_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+        const item = document.createElement('div');
+        item.className = 'flex items-start space-x-3 text-xs';
+        item.innerHTML = `
+          <div class="w-24 text-gray-500 font-medium shrink-0">
+            <div>${dateStr}</div>
+            <div class="text-[10px] text-gray-400">${timeStr}</div>
           </div>
-          <div class="flex-1 text-xs">
-            <div class="font-bold text-gray-800">${evt.status}</div>
-            <div class="text-gray-600">${evt.description || ''}</div>
-            <div class="text-gray-400">${evt.location || ''}</div>
+          <div class="relative flex flex-col items-center">
+            <div class="w-3.5 h-3.5 rounded-full ${idx === 0 ? 'bg-fedexGreen ring-4 ring-green-100' : 'bg-gray-300'}"></div>
+            ${idx !== events.length - 1 ? '<div class="w-0.5 h-10 bg-gray-200"></div>' : ''}
+          </div>
+          <div class="flex-1 pb-2">
+            <div class="font-bold text-gray-800">${ev.status}</div>
+            <div class="text-gray-600">${ev.description || ''}</div>
+            <div class="text-gray-400 font-semibold text-[10px] mt-0.5">${ev.location || ''}</div>
           </div>
         `;
-        container.appendChild(div);
+        container.appendChild(item);
       });
     }
 
-    function updateProgressBar(status) {
-      const lower = (status || '').toLowerCase();
-      const bar = document.getElementById('dtProgressBar');
-      const step2 = document.getElementById('step2Dot');
-      const step3 = document.getElementById('step3Dot');
-      const step4 = document.getElementById('step4Dot');
-
-      if (lower.includes('delivered')) {
-        bar.style.width = '100%';
-        step2.className = step3.className = step4.className = 'w-4 h-4 bg-fedexGreen border-2 border-white rounded-full';
-      } else if (lower.includes('out for delivery')) {
-        bar.style.width = '75%';
-        step2.className = step3.className = 'w-4 h-4 bg-fedexGreen border-2 border-white rounded-full';
-        step4.className = 'w-4 h-4 bg-gray-300 border-2 border-white rounded-full';
-      } else if (lower.includes('transit')) {
-        bar.style.width = '50%';
-        step2.className = 'w-4 h-4 bg-fedexGreen border-2 border-white rounded-full';
-        step3.className = step4.className = 'w-4 h-4 bg-gray-300 border-2 border-white rounded-full';
-      } else {
-        bar.style.width = '25%';
-        step2.className = step3.className = step4.className = 'w-4 h-4 bg-gray-300 border-2 border-white rounded-full';
-      }
-    }
-
-    function initMap(curLat, curLng, origLat, origLng, destLat, destLng) {
-      if (mapInstance) mapInstance.remove();
-
-      mapInstance = L.map('desktopMap', { zoomControl: false }).setView([curLat, curLng], 5);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(mapInstance);
-
-      const route = [[origLat, origLng], [curLat, curLng], [destLat, destLng]];
-      L.polyline(route, { color: '#4D148C', weight: 4, dashArray: '6,6' }).addTo(mapInstance);
-
-      L.circleMarker([origLat, origLng], { radius: 5, color: '#4D148C', fillColor: '#4D148C', fillOpacity: 1 }).addTo(mapInstance);
-      L.circleMarker([destLat, destLng], { radius: 5, color: '#4D148C', fillColor: '#4D148C', fillOpacity: 1 }).addTo(mapInstance);
-
-      const truckIcon = L.divIcon({
-        html: `<div style="background:#4D148C; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.4);"><i class="fa-solid fa-truck" style="font-size:11px;"></i></div>`,
-        className: '',
-        iconSize: [28, 28],
-        iconAnchor: [14, 14]
-      });
-
-      truckMarker = L.marker([curLat, curLng], { icon: truckIcon }).addTo(mapInstance);
-      setTimeout(() => mapInstance.invalidateSize(), 200);
-    }
-
-    function listenToRealtime(shipmentId) {
-      if (activeChannel) supabaseClient.removeChannel(activeChannel);
-
-      activeChannel = supabaseClient
-        .channel(`public:shipments:id=eq.${shipmentId}`)
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'shipments', filter: `id=eq.${shipmentId}` }, (payload) => {
-          document.getElementById('dtStatusBadge').innerText = payload.new.status.toUpperCase();
-          document.getElementById('dtCurrentLocation').innerText = payload.new.current_location || 'In Transit';
-          updateProgressBar(payload.new.status);
-
-          if (payload.new.current_lat && payload.new.current_lng && truckMarker) {
-            const newLat = parseFloat(payload.new.current_lat);
-            const newLng = parseFloat(payload.new.current_lng);
-            truckMarker.setLatLng([newLat, newLng]);
-            mapInstance.panTo([newLat, newLng]);
-          }
-        })
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tracking_events', filter: `shipment_id=eq.${shipmentId}` }, (payload) => {
-          const container = document.getElementById('dtTravelHistory');
-          const timeStr = new Date(payload.new.event_time).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' });
-          const div = document.createElement('div');
-          div.className = 'flex items-start space-x-4 p-3 rounded-lg border bg-fedexLightGreen border-green-200 animate-pulse';
-          div.innerHTML = `
-            <div class="w-32 text-right text-xs font-bold text-fedexGreen">${timeStr}</div>
-            <div class="w-5 h-5 rounded-full bg-fedexGreen text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5"><i class="fa-solid fa-truck"></i></div>
-            <div class="flex-1 text-xs">
-              <div class="font-bold text-gray-800">${payload.new.status}</div>
-              <div class="text-gray-600">${payload.new.description || ''}</div>
-              <div class="text-gray-400">${payload.new.location || ''}</div>
-            </div>
-          `;
-          container.prepend(div);
-        })
-        .subscribe();
-    }
-
-    function showLoading() {
-      document.getElementById('loadingState').classList.remove('hidden');
-      document.getElementById('errorState').classList.add('hidden');
-      document.getElementById('dashboardContent').classList.add('hidden');
-    }
-
-    function showError(msg) {
-      document.getElementById('errorMessage').innerText = msg;
-      document.getElementById('loadingState').classList.add('hidden');
-      document.getElementById('errorState').classList.remove('hidden');
-      document.getElementById('dashboardContent').classList.add('hidden');
-    }
-
-    function showDashboard() {
-      document.getElementById('loadingState').classList.add('hidden');
-      document.getElementById('errorState').classList.add('hidden');
-      document.getElementById('dashboardContent').classList.remove('hidden');
+    function renderDefaultHistory() {
+      const container = document.getElementById('travelHistoryList');
+      container.innerHTML = `
+        <div class="flex items-start space-x-3 text-xs">
+          <div class="w-24 text-gray-500 font-medium shrink-0">
+            <div>May 25, 2025</div>
+            <div class="text-[10px] text-gray-400">6:35 AM</div>
+          </div>
+          <div class="w-3.5 h-3.5 rounded-full bg-fedexGreen ring-4 ring-green-100 shrink-0 mt-0.5"></div>
+          <div>
+            <div class="font-bold text-gray-800">In transit</div>
+            <div class="text-gray-600">Departed FedEx location</div>
+            <div class="text-gray-400 font-semibold text-[10px]">MEMPHIS, TN</div>
+          </div>
+        </div>
+        <div class="flex items-start space-x-3 text-xs">
+          <div class="w-24 text-gray-500 font-medium shrink-0">
+            <div>May 23, 2025</div>
+            <div class="text-[10px] text-gray-400">11:20 AM</div>
+          </div>
+          <div class="w-3.5 h-3.5 rounded-full bg-gray-300 shrink-0 mt-0.5"></div>
+          <div>
+            <div class="font-bold text-gray-800">Picked up</div>
+            <div class="text-gray-600">Package received at FedEx location</div>
+            <div class="text-gray-400 font-semibold text-[10px]">LOS ANGELES, CA</div>
+          </div>
+        </div>
+      `;
     }
   </script>
 </body>
