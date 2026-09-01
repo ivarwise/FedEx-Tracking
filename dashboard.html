@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard | SwiftTrack</title>
+  <title>SwiftTrack - Admin Dashboard</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <script>
@@ -17,293 +18,408 @@
             fedexOrange: '#FF6600',
             fedexBg: '#F7F7F9',
             fedexGreen: '#008A00',
-            fedexLightGreen: '#E6F4EA',
           }
         }
       }
     }
   </script>
 </head>
-<body class="bg-fedexBg text-gray-800 font-sans antialiased min-h-screen">
+<body class="bg-fedexBg text-gray-800 font-sans min-h-screen">
 
-  <!-- Header -->
-  <header class="bg-fedexPurple text-white px-6 py-3 flex items-center justify-between sticky top-0 z-50 shadow">
-    <div class="flex items-center space-x-8">
-      <a href="index.html" class="text-2xl font-black tracking-tighter">
-        <span class="text-white">Swift</span><span class="text-fedexOrange">Track</span>
-      </a>
-      <nav class="hidden md:flex space-x-5 text-sm font-medium">
-        <a href="index.html" class="hover:text-gray-200">Track</a>
-        <a href="dashboard.html" class="border-b-2 border-fedexOrange pb-1 font-bold">Admin Dashboard</a>
-      </nav>
+  <!-- Top Admin Bar -->
+  <header class="bg-fedexPurple text-white px-6 py-4 shadow-md flex justify-between items-center">
+    <div class="flex items-center space-x-3">
+      <div class="text-2xl font-black tracking-tighter">
+        <span>Swift</span><span class="text-fedexOrange">Track</span>
+      </div>
+      <span class="bg-purple-800 text-purple-200 text-xs px-3 py-1 rounded-full font-semibold">Admin Workspace</span>
     </div>
-    <div class="text-sm opacity-90">Connected to your Supabase</div>
+    <a href="index.html" target="_blank" class="bg-white/10 hover:bg-white/20 text-white text-xs px-4 py-2 rounded-lg font-semibold transition">
+      <i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i> Open Customer Portal
+    </a>
   </header>
 
-  <div class="flex min-h-[calc(100vh-56px)]">
+  <main class="max-w-7xl mx-auto p-6 space-y-8">
     
-    <!-- Sidebar -->
-    <aside class="w-60 bg-white border-r border-gray-200 p-4 space-y-1 text-sm font-medium text-gray-700 hidden md:block">
-      <button onclick="showPanel('create')" id="btn-create" class="sidebar-btn flex items-center space-x-3 bg-purple-50 text-fedexPurple p-3 rounded-lg font-bold w-full text-left">
-        <i class="fa-solid fa-plus text-lg"></i>
-        <span>Create Shipment</span>
-      </button>
-      <button onclick="showPanel('list')" id="btn-list" class="sidebar-btn flex items-center space-x-3 hover:bg-gray-50 p-3 rounded-lg w-full text-left transition">
-        <i class="fa-solid fa-boxes-stacked text-lg text-gray-400"></i>
-        <span>All Shipments</span>
-      </button>
-      <button onclick="showPanel('stats')" id="btn-stats" class="sidebar-btn flex items-center space-x-3 hover:bg-gray-50 p-3 rounded-lg w-full text-left transition">
-        <i class="fa-solid fa-chart-simple text-lg text-gray-400"></i>
-        <span>Overview</span>
-      </button>
-    </aside>
+    <!-- SECTION 1: REGISTER NEW SHIPMENT -->
+    <section class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Register New Shipment</h2>
+          <p class="text-xs text-gray-500">Generates a unique tracking code and shipment receipt automatically.</p>
+        </div>
+      </div>
 
-    <!-- Main Content -->
-    <main class="flex-1 p-6 max-w-6xl">
-
-      <!-- ========== CREATE SHIPMENT PANEL ========== -->
-      <div id="panel-create" class="panel">
-        <h1 class="text-2xl font-bold mb-1">Create New Shipment</h1>
-        <p class="text-gray-500 text-sm mb-6">Fill the details. A real tracking number and receipt will be generated automatically.</p>
-
-        <div id="createAlert" class="hidden mb-4"></div>
-
-        <form id="createForm" class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-8">
-          
-          <!-- Sender + Recipient -->
-          <div class="grid md:grid-cols-2 gap-8">
-            <!-- Sender -->
-            <div>
-              <h3 class="font-bold text-fedexPurple mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-arrow-up"></i> Sender (Origin)
-              </h3>
-              <div class="space-y-3">
-                <div>
-                  <label class="text-xs font-semibold text-gray-500 uppercase">Full Name *</label>
-                  <input type="text" name="sender_name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="John Smith">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                  <div>
-                    <label class="text-xs font-semibold text-gray-500 uppercase">Phone</label>
-                    <input type="tel" name="sender_phone" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple">
-                  </div>
-                  <div>
-                    <label class="text-xs font-semibold text-gray-500 uppercase">Email</label>
-                    <input type="email" name="sender_email" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple">
-                  </div>
-                </div>
-                <div>
-                  <label class="text-xs font-semibold text-gray-500 uppercase">Street Address *</label>
-                  <input type="text" name="sender_address" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="123 Main St">
-                </div>
-                <div class="grid grid-cols-3 gap-3">
-                  <div>
-                    <label class="text-xs font-semibold text-gray-500 uppercase">City *</label>
-                    <input type="text" name="sender_city" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="Los Angeles">
-                  </div>
-                  <div>
-                    <label class="text-xs font-semibold text-gray-500 uppercase">State</label>
-                    <input type="text" name="sender_state" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="CA">
-                  </div>
-                  <div>
-                    <label class="text-xs font-semibold text-gray-500 uppercase">ZIP</label>
-                    <input type="text" name="sender_zip" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="90001">
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Recipient -->
-            <div>
-              <h3 class="font-bold text-fedexPurple mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-arrow-down"></i> Recipient (Destination)
-              </h3>
-              <div class="space-y-3">
-                <div>
-                  <label class="text-xs font-semibold text-gray-500 uppercase">Full Name *</label>
-                  <input type="text" name="recipient_name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="Jane Doe">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                  <div>
-                    <label class="text-xs font-semibold text-gray-500 uppercase">Phone</label>
-                    <input type="tel" name="recipient_phone" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple">
-                  </div>
-                  <div>
-                    <label class="text-xs font-semibold text-gray-500 uppercase">Email</label>
-                    <input type="email" name="recipient_email" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple">
-                  </div>
-                </div>
-                <div>
-                  <label class="text-xs font-semibold text-gray-500 uppercase">Street Address *</label>
-                  <input type="text" name="recipient_address" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="456 Park Ave">
-                </div>
-                <div class="grid grid-cols-3 gap-3">
-                  <div>
-                    <label class="text-xs font-semibold text-gray-500 uppercase">City *</label>
-                    <input type="text" name="recipient_city" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="New York">
-                  </div>
-                  <div>
-                    <label class="text-xs font-semibold text-gray-500 uppercase">State</label>
-                    <input type="text" name="recipient_state" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="NY">
-                  </div>
-                  <div>
-                    <label class="text-xs font-semibold text-gray-500 uppercase">ZIP</label>
-                    <input type="text" name="recipient_zip" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="10001">
-                  </div>
-                </div>
-              </div>
+      <form id="createShipmentForm" class="space-y-6">
+        <!-- Sender Details -->
+        <div>
+          <h3 class="text-xs font-bold text-fedexPurple uppercase tracking-wider mb-3"><i class="fa-solid fa-user-gear mr-1"></i> Sender (Origin)</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+            <input type="text" id="senderName" placeholder="Sender Full Name *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="senderPhone" placeholder="Phone Number" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
+            <input type="email" id="senderEmail" placeholder="Email Address" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="senderAddress" placeholder="Street Address *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none col-span-1 sm:col-span-2" />
+            <input type="text" id="senderCity" placeholder="City *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="senderState" placeholder="State/Province" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="senderCountry" placeholder="Country" value="United States" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
+            <div class="flex gap-2">
+              <input type="number" step="any" id="originLat" placeholder="Origin Lat (e.g. 34.0522)" class="border p-2.5 rounded-lg text-xs w-1/2 outline-none" />
+              <input type="number" step="any" id="originLng" placeholder="Origin Lng (e.g. -118.2437)" class="border p-2.5 rounded-lg text-xs w-1/2 outline-none" />
             </div>
           </div>
+        </div>
 
-          <!-- Package -->
-          <div>
-            <h3 class="font-bold text-fedexPurple mb-4 flex items-center gap-2">
-              <i class="fa-solid fa-box"></i> Package & Service
-            </h3>
-            <div class="grid md:grid-cols-4 gap-4">
-              <div>
-                <label class="text-xs font-semibold text-gray-500 uppercase">Package Type</label>
-                <select name="package_type" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple">
-                  <option>Package</option>
-                  <option>Envelope</option>
-                  <option>Box</option>
-                  <option>Pallet</option>
-                </select>
-              </div>
-              <div>
-                <label class="text-xs font-semibold text-gray-500 uppercase">Service</label>
-                <select name="service_type" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple">
-                  <option>Priority Overnight</option>
-                  <option>Standard Overnight</option>
-                  <option>2Day</option>
-                  <option>Express Saver</option>
-                  <option>Ground</option>
-                </select>
-              </div>
-              <div>
-                <label class="text-xs font-semibold text-gray-500 uppercase">Weight (lbs)</label>
-                <input type="number" name="weight_lbs" step="0.01" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="2.50">
-              </div>
-              <div>
-                <label class="text-xs font-semibold text-gray-500 uppercase">Dimensions</label>
-                <input type="text" name="dimensions" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="12 x 8 x 6 in">
-              </div>
+        <hr class="border-gray-100" />
+
+        <!-- Recipient Details -->
+        <div>
+          <h3 class="text-xs font-bold text-fedexPurple uppercase tracking-wider mb-3"><i class="fa-solid fa-location-dot mr-1"></i> Recipient (Destination)</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+            <input type="text" id="recipientName" placeholder="Recipient Full Name *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="recipientPhone" placeholder="Phone Number" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
+            <input type="email" id="recipientEmail" placeholder="Email Address" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="recipientAddress" placeholder="Street Address *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none col-span-1 sm:col-span-2" />
+            <input type="text" id="recipientCity" placeholder="City *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="recipientState" placeholder="State/Province" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="recipientCountry" placeholder="Country" value="United States" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
+            <div class="flex gap-2">
+              <input type="number" step="any" id="destLat" placeholder="Dest Lat (e.g. 40.7128)" class="border p-2.5 rounded-lg text-xs w-1/2 outline-none" />
+              <input type="number" step="any" id="destLng" placeholder="Dest Lng (e.g. -74.0060)" class="border p-2.5 rounded-lg text-xs w-1/2 outline-none" />
             </div>
           </div>
-
-          <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
-            <button type="reset" class="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-semibold hover:bg-gray-50">Clear</button>
-            <button type="submit" id="createBtn" class="bg-fedexPurple text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-purple-900 transition">
-              Create Shipment & Generate Tracking #
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- ========== ALL SHIPMENTS PANEL ========== -->
-      <div id="panel-list" class="panel hidden">
-        <div class="flex items-center justify-between mb-6">
-          <div>
-            <h1 class="text-2xl font-bold">All Shipments</h1>
-            <p class="text-gray-500 text-sm">Real data from your database</p>
-          </div>
-          <button onclick="loadShipments()" class="text-sm font-semibold text-fedexPurple hover:underline">
-            <i class="fa-solid fa-rotate"></i> Refresh
-          </button>
         </div>
 
-        <div class="mb-4">
-          <input type="text" id="searchShipments" placeholder="Search by tracking number, name or city..." class="w-full max-w-md border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-fedexPurple">
-        </div>
+        <hr class="border-gray-100" />
 
-        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-          <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase">
-              <tr>
-                <th class="px-4 py-3">Tracking #</th>
-                <th class="px-4 py-3">Status</th>
-                <th class="px-4 py-3">From → To</th>
-                <th class="px-4 py-3">Ship Date</th>
-                <th class="px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="shipmentsTable" class="divide-y divide-gray-100">
-              <tr><td colspan="5" class="px-4 py-10 text-center text-gray-400">Loading...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- ========== OVERVIEW PANEL ========== -->
-      <div id="panel-stats" class="panel hidden">
-        <h1 class="text-2xl font-bold mb-6">Overview</h1>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="statsRow">
-          <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <div class="text-xs font-semibold text-gray-400 uppercase">Total</div>
-            <div class="text-3xl font-bold mt-1" id="statTotal">—</div>
-          </div>
-          <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <div class="text-xs font-semibold text-gray-400 uppercase">In Transit</div>
-            <div class="text-3xl font-bold mt-1 text-fedexPurple" id="statTransit">—</div>
-          </div>
-          <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <div class="text-xs font-semibold text-gray-400 uppercase">Delivered</div>
-            <div class="text-3xl font-bold mt-1 text-fedexGreen" id="statDelivered">—</div>
-          </div>
-          <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <div class="text-xs font-semibold text-gray-400 uppercase">Pending</div>
-            <div class="text-3xl font-bold mt-1" id="statPending">—</div>
-          </div>
-        </div>
-      </div>
-
-    </main>
-  </div>
-
-  <!-- UPDATE MODAL -->
-  <div id="updateModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 hidden">
-    <div class="bg-white rounded-2xl w-full max-w-md mx-4 shadow-xl">
-      <div class="flex items-center justify-between px-6 py-4 border-b">
-        <h3 class="font-bold text-lg">Update Shipment</h3>
-        <button onclick="closeUpdateModal()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
-      </div>
-      <div class="p-6 space-y-4">
-        <p class="text-sm text-gray-500">Tracking: <strong id="modalTracking" class="text-fedexPurple"></strong></p>
-        <input type="hidden" id="modalShipmentId">
-
+        <!-- Package & Service Info -->
         <div>
-          <label class="text-xs font-semibold text-gray-500 uppercase">Status</label>
-          <select id="modalStatus" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple">
-            <option>Pending</option>
-            <option>Picked Up</option>
-            <option>Processing</option>
-            <option>In Transit</option>
-            <option>Arrived at Facility</option>
-            <option>Out for Delivery</option>
-            <option>Delivered</option>
-            <option>Exception</option>
-          </select>
+          <h3 class="text-xs font-bold text-fedexPurple uppercase tracking-wider mb-3"><i class="fa-solid fa-box mr-1"></i> Package Information</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 text-sm">
+            <select id="packageType" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none bg-white">
+              <option value="Package">Package</option>
+              <option value="Envelope">Envelope / Letter</option>
+              <option value="Freight">Freight / Pallet</option>
+            </select>
+            <input type="number" step="0.1" id="weightLbs" placeholder="Weight (lbs)" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="dimensions" placeholder="Dimensions (e.g. 12x8x6 in)" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
+            <select id="serviceType" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none bg-white">
+              <option value="Priority Overnight">Priority Overnight</option>
+              <option value="Standard Express">Standard Express</option>
+              <option value="Ground Delivery">Ground Delivery</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label class="text-xs font-semibold text-gray-500 uppercase">Current Location (City, State)</label>
-          <input type="text" id="modalLocation" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="Memphis, TN">
-        </div>
-        <div>
-          <label class="text-xs font-semibold text-gray-500 uppercase">Description / Note</label>
-          <input type="text" id="modalDescription" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fedexPurple" placeholder="Departed FedEx location">
+
+        <button type="submit" id="submitBtn" class="bg-fedexOrange hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-lg text-sm transition flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-plus-circle"></i> <span>Generate Tracking Code & Create Shipment</span>
+        </button>
+      </form>
+    </section>
+
+    <!-- SECTION 2: SHIPMENT MANAGEMENT & LIVE UPDATES -->
+    <section class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+      <h2 class="text-xl font-bold text-gray-800 mb-4">Manage Active Shipments</h2>
+      
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-200 text-gray-500 font-semibold uppercase">
+              <th class="p-3">Tracking Code</th>
+              <th class="p-3">Sender → Recipient</th>
+              <th class="p-3">Status</th>
+              <th class="p-3">Current Location</th>
+              <th class="p-3">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="shipmentsTableBody" class="divide-y divide-gray-100">
+            <tr>
+              <td colspan="5" class="p-4 text-center text-gray-400">Loading shipments...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- RECEIPT MODAL (PRINTABLE) -->
+  <div id="receiptModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative" id="printableReceipt">
+      <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+        <div class="text-xl font-black">Swift<span class="text-fedexOrange">Track</span></div>
+        <div class="text-right">
+          <div class="text-xs font-bold text-gray-400">SHIPMENT RECEIPT</div>
+          <div id="rcptDate" class="text-[10px] text-gray-500">--</div>
         </div>
       </div>
-      <div class="px-6 py-4 border-t flex justify-end gap-3">
-        <button onclick="closeUpdateModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-semibold">Cancel</button>
-        <button onclick="saveUpdate()" id="saveUpdateBtn" class="bg-fedexPurple text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-purple-900">Save Update</button>
+
+      <div class="bg-purple-50 p-4 rounded-lg text-center border border-purple-100">
+        <div class="text-xs text-purple-700 font-semibold uppercase">Tracking Code</div>
+        <div id="rcptTrackingNum" class="text-2xl font-black text-fedexPurple tracking-wider">--</div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 text-xs">
+        <div class="bg-gray-50 p-3 rounded">
+          <span class="text-gray-400 text-[10px] font-bold block">FROM (SENDER)</span>
+          <div id="rcptSender" class="font-bold">--</div>
+          <div id="rcptSenderAddr" class="text-gray-500">--</div>
+        </div>
+        <div class="bg-gray-50 p-3 rounded">
+          <span class="text-gray-400 text-[10px] font-bold block">TO (RECIPIENT)</span>
+          <div id="rcptRecipient" class="font-bold">--</div>
+          <div id="rcptRecipientAddr" class="text-gray-500">--</div>
+        </div>
+      </div>
+
+      <div class="border-t border-b border-gray-100 py-3 grid grid-cols-3 gap-2 text-[11px]">
+        <div><span class="text-gray-400 block">Service</span><span id="rcptService" class="font-bold">--</span></div>
+        <div><span class="text-gray-400 block">Weight</span><span id="rcptWeight" class="font-bold">--</span></div>
+        <div><span class="text-gray-400 block">Type</span><span id="rcptType" class="font-bold">--</span></div>
+      </div>
+
+      <div class="flex justify-between items-center pt-2 print:hidden">
+        <button onclick="closeReceiptModal()" class="px-4 py-2 border rounded-lg text-xs font-semibold hover:bg-gray-50">Close</button>
+        <button onclick="window.print()" class="px-4 py-2 bg-fedexPurple text-white rounded-lg text-xs font-bold hover:bg-purple-900 flex items-center gap-1.5">
+          <i class="fa-solid fa-print"></i> Print Receipt
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js"></script>
-  <script src="js/supabase-client.js"></script>
-  <script src="js/dashboard.js"></script>
+  <!-- UPDATE STATUS MODAL -->
+  <div id="updateModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <h3 class="text-base font-bold text-gray-800">Update Shipment Location & Status</h3>
+      <input type="hidden" id="updateShipmentId" />
+      <input type="hidden" id="updateTrackingNum" />
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="font-semibold block mb-1">Status Phase</label>
+          <select id="updateStatus" class="w-full border p-2.5 rounded-lg outline-none bg-white font-medium">
+            <option value="Pending">Pending</option>
+            <option value="Picked Up">Picked Up</option>
+            <option value="In Transit">In Transit</option>
+            <option value="Arrived at Facility">Arrived at Facility</option>
+            <option value="Out for Delivery">Out for Delivery</option>
+            <option value="Delivered">Delivered</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="font-semibold block mb-1">Current Location (City, State/Country)</label>
+          <input type="text" id="updateLocation" placeholder="e.g. Memphis Hub, TN" class="w-full border p-2.5 rounded-lg outline-none" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-semibold block mb-1">Current Latitude</label>
+            <input type="number" step="any" id="updateLat" placeholder="e.g. 35.1495" class="w-full border p-2.5 rounded-lg outline-none" />
+          </div>
+          <div>
+            <label class="font-semibold block mb-1">Current Longitude</label>
+            <input type="number" step="any" id="updateLng" placeholder="e.g. -90.0490" class="w-full border p-2.5 rounded-lg outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="font-semibold block mb-1">Event Description</label>
+          <input type="text" id="updateDescription" placeholder="e.g. Departed sorting center" class="w-full border p-2.5 rounded-lg outline-none" />
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-2 pt-2">
+        <button onclick="closeUpdateModal()" class="px-4 py-2 border rounded-lg text-xs font-semibold">Cancel</button>
+        <button onclick="saveShipmentUpdate()" class="px-4 py-2 bg-fedexGreen text-white rounded-lg text-xs font-bold hover:bg-green-700">Save & Notify System</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://oyaeazydvudevjbwtwtt.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_vl_XazGVbpvyobavVnPqUg_VfqGGZ5B';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    window.addEventListener('DOMContentLoaded', fetchAllShipments);
+
+    // Auto-generate Unique Tracking Code Format: ST-XXXX-XXXX
+    function generateTrackingNumber() {
+      const rand1 = Math.floor(1000 + Math.random() * 9000);
+      const rand2 = Math.floor(1000 + Math.random() * 9000);
+      return `ST-${rand1}-${rand2}`;
+    }
+
+    // Handle Form Submit
+    document.getElementById('createShipmentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Creating Shipment...';
+
+      const trackingNumber = generateTrackingNumber();
+
+      const origLat = parseFloat(document.getElementById('originLat').value) || 34.0522;
+      const origLng = parseFloat(document.getElementById('originLng').value) || -118.2437;
+      const destLat = parseFloat(document.getElementById('destLat').value) || 40.7128;
+      const destLng = parseFloat(document.getElementById('destLng').value) || -74.0060;
+
+      const newShipment = {
+        tracking_number: trackingNumber,
+        status: 'Picked Up',
+        sender_name: document.getElementById('senderName').value,
+        sender_phone: document.getElementById('senderPhone').value,
+        sender_email: document.getElementById('senderEmail').value,
+        sender_address: document.getElementById('senderAddress').value,
+        sender_city: document.getElementById('senderCity').value,
+        sender_state: document.getElementById('senderState').value,
+        sender_country: document.getElementById('senderCountry').value,
+        recipient_name: document.getElementById('recipientName').value,
+        recipient_phone: document.getElementById('recipientPhone').value,
+        recipient_email: document.getElementById('recipientEmail').value,
+        recipient_address: document.getElementById('recipientAddress').value,
+        recipient_city: document.getElementById('recipientCity').value,
+        recipient_state: document.getElementById('recipientState').value,
+        recipient_country: document.getElementById('recipientCountry').value,
+        package_type: document.getElementById('packageType').value,
+        weight_lbs: parseFloat(document.getElementById('weightLbs').value) || 1.0,
+        dimensions: document.getElementById('dimensions').value || '10x6x4 in',
+        service_type: document.getElementById('serviceType').value,
+        origin_lat: origLat,
+        origin_lng: origLng,
+        dest_lat: destLat,
+        dest_lng: destLng,
+        current_lat: origLat,
+        current_lng: origLng,
+        current_location: `${document.getElementById('senderCity').value}, ${document.getElementById('senderState').value || ''}`,
+        estimated_delivery: new Date(Date.now() + 86400000 * 3).toISOString()
+      };
+
+      const { data: shipment, error: shipErr } = await supabaseClient
+        .from('shipments')
+        .insert([newShipment])
+        .select()
+        .single();
+
+      if (shipErr) {
+        alert('Error creating shipment: ' + shipErr.message);
+        submitBtn.disabled = false;
+        return;
+      }
+
+      // Add Initial Tracking Event
+      await supabaseClient.from('tracking_events').insert([{
+        shipment_id: shipment.id,
+        tracking_number: trackingNumber,
+        status: 'Picked Up',
+        location: shipment.current_location,
+        description: 'Package picked up by carrier',
+        lat: origLat,
+        lng: origLng
+      }]);
+
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-plus-circle"></i> <span>Generate Tracking Code & Create Shipment</span>';
+      document.getElementById('createShipmentForm').reset();
+
+      // Show Receipt Modal
+      openReceiptModal(shipment);
+      fetchAllShipments();
+    });
+
+    async function fetchAllShipments() {
+      const { data: shipments } = await supabaseClient
+        .from('shipments')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      const tbody = document.getElementById('shipmentsTableBody');
+      tbody.innerHTML = '';
+
+      if (!shipments || shipments.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">No shipments found. Register one above!</td></tr>';
+        return;
+      }
+
+      shipments.forEach((s) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50';
+        tr.innerHTML = `
+          <td class="p-3 font-bold text-fedexPurple">${s.tracking_number}</td>
+          <td class="p-3">${s.sender_name} (${s.sender_city}) → ${s.recipient_name} (${s.recipient_city})</td>
+          <td class="p-3"><span class="bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded text-[10px]">${s.status}</span></td>
+          <td class="p-3 text-gray-500">${s.current_location || 'N/A'}</td>
+          <td class="p-3 space-x-2">
+            <button onclick="openUpdateModal('${s.id}', '${s.tracking_number}', '${s.status}', '${s.current_location || ''}', '${s.current_lat || ''}', '${s.current_lng || ''}')" class="bg-fedexPurple text-white px-2.5 py-1 rounded text-[10px] font-bold">Update</button>
+            <button onclick='openReceiptModal(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="border border-gray-300 text-gray-700 px-2 py-1 rounded text-[10px]">Receipt</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Modal Helpers
+    function openReceiptModal(shipment) {
+      document.getElementById('rcptDate').innerText = new Date(shipment.created_at || Date.now()).toLocaleDateString();
+      document.getElementById('rcptTrackingNum').innerText = shipment.tracking_number;
+      document.getElementById('rcptSender').innerText = shipment.sender_name;
+      document.getElementById('rcptSenderAddr').innerText = `${shipment.sender_address}, ${shipment.sender_city}, ${shipment.sender_country}`;
+      document.getElementById('rcptRecipient').innerText = shipment.recipient_name;
+      document.getElementById('rcptRecipientAddr').innerText = `${shipment.recipient_address}, ${shipment.recipient_city}, ${shipment.recipient_country}`;
+      document.getElementById('rcptService').innerText = shipment.service_type || 'Priority Overnight';
+      document.getElementById('rcptWeight').innerText = `${shipment.weight_lbs} lbs`;
+      document.getElementById('rcptType').innerText = shipment.package_type;
+
+      document.getElementById('receiptModal').classList.remove('hidden');
+    }
+
+    function closeReceiptModal() {
+      document.getElementById('receiptModal').classList.add('hidden');
+    }
+
+    function openUpdateModal(id, trackingNum, status, loc, lat, lng) {
+      document.getElementById('updateShipmentId').value = id;
+      document.getElementById('updateTrackingNum').value = trackingNum;
+      document.getElementById('updateStatus').value = status;
+      document.getElementById('updateLocation').value = loc;
+      document.getElementById('updateLat').value = lat;
+      document.getElementById('updateLng').value = lng;
+      document.getElementById('updateModal').classList.remove('hidden');
+    }
+
+    function closeUpdateModal() {
+      document.getElementById('updateModal').classList.add('hidden');
+    }
+
+    async function saveShipmentUpdate() {
+      const id = document.getElementById('updateShipmentId').value;
+      const trackingNum = document.getElementById('updateTrackingNum').value;
+      const status = document.getElementById('updateStatus').value;
+      const location = document.getElementById('updateLocation').value;
+      const lat = parseFloat(document.getElementById('updateLat').value) || null;
+      const lng = parseFloat(document.getElementById('updateLng').value) || null;
+      const description = document.getElementById('updateDescription').value || `Shipment status updated to ${status}`;
+
+      // Update Shipment Record
+      await supabaseClient
+        .from('shipments')
+        .update({ status, current_location: location, current_lat: lat, current_lng: lng, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      // Insert Travel Event Entry
+      await supabaseClient.from('tracking_events').insert([{
+        shipment_id: id,
+        tracking_number: trackingNum,
+        status,
+        location,
+        description,
+        lat,
+        lng
+      }]);
+
+      closeUpdateModal();
+      fetchAllShipments();
+    }
+  </script>
 </body>
 </html>
+
