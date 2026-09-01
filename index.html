@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Track Your Shipment | SwiftTrack</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/tracking.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <a href="index.html" class="header-logo">Swift<span>Track</span></a>
+    <nav class="header-nav">
+      <a href="index.html" class="active">Track</a>
+      <a href="dashboard.html">Admin Dashboard</a>
+    </nav>
+  </header>
+
+  <main class="tracking-page">
+    <!-- Search -->
+    <div class="track-search">
+      <h1>Track a Shipment</h1>
+      <p>Enter your tracking number to see real-time status, location, and delivery estimate.</p>
+      <form class="search-form" id="trackForm">
+        <input
+          type="text"
+          id="trackingInput"
+          class="form-control"
+          placeholder="e.g. 7724 5387 9012"
+          autocomplete="off"
+          required
+        />
+        <button type="submit" class="btn btn-primary" id="trackBtn">
+          Track
+        </button>
+      </form>
+      <div id="searchError" class="alert alert-error" style="display:none; margin-top:16px;"></div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingState" class="loading-overlay" style="display:none;">
+      <div class="spinner"></div>
+      <span>Looking up your shipment…</span>
+    </div>
+
+    <!-- Results -->
+    <div id="trackingResult" class="tracking-result">
+      <!-- Status Hero -->
+      <div class="status-hero">
+        <div class="status-hero-top">
+          <div>
+            <div class="tracking-number-display">
+              <span>Tracking #</span>
+              <span id="displayTracking">—</span>
+            </div>
+            <div style="margin-top:8px;">
+              <span class="status-badge" id="statusBadge">—</span>
+            </div>
+          </div>
+          <div class="eta-block">
+            <div class="eta-label">Estimated Delivery</div>
+            <div class="eta-date" id="etaDate">—</div>
+            <div class="eta-ontime" id="etaStatus">On time</div>
+          </div>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="progress-steps" id="progressSteps">
+          <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+          <div class="step" data-step="0">
+            <div class="step-icon">📦</div>
+            <div class="step-label">Picked Up</div>
+          </div>
+          <div class="step" data-step="1">
+            <div class="step-icon">🚚</div>
+            <div class="step-label">In Transit</div>
+          </div>
+          <div class="step" data-step="2">
+            <div class="step-icon">📍</div>
+            <div class="step-label">Out for Delivery</div>
+          </div>
+          <div class="step" data-step="3">
+            <div class="step-icon">✓</div>
+            <div class="step-label">Delivered</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- From / To -->
+      <div class="from-to-card" style="margin-bottom:20px;">
+        <div>
+          <div class="from-to-label">From</div>
+          <div class="from-to-name" id="fromName">—</div>
+          <div class="from-to-address" id="fromAddress">—</div>
+        </div>
+        <div class="arrow-circle">→</div>
+        <div>
+          <div class="from-to-label">To</div>
+          <div class="from-to-name" id="toName">—</div>
+          <div class="from-to-address" id="toAddress">—</div>
+        </div>
+      </div>
+
+      <!-- Grid: Map + Details -->
+      <div class="tracking-grid">
+        <!-- Map -->
+        <div class="map-card">
+          <div class="card-header">
+            <span>Shipment Route</span>
+            <span class="text-sm text-muted" id="currentLocLabel">—</span>
+          </div>
+          <div id="map"></div>
+        </div>
+
+        <!-- Shipment Details -->
+        <div class="card">
+          <div class="card-header">Shipment Details</div>
+          <div class="card-body">
+            <div class="details-list">
+              <div class="detail-item">
+                <label>Service</label>
+                <span id="detailService">—</span>
+              </div>
+              <div class="detail-item">
+                <label>Weight</label>
+                <span id="detailWeight">—</span>
+              </div>
+              <div class="detail-item">
+                <label>Ship Date</label>
+                <span id="detailShipDate">—</span>
+              </div>
+              <div class="detail-item">
+                <label>Reference</label>
+                <span id="detailRef">—</span>
+              </div>
+              <div class="detail-item">
+                <label>Package Type</label>
+                <span id="detailPackage">—</span>
+              </div>
+              <div class="detail-item">
+                <label>Dimensions</label>
+                <span id="detailDims">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Travel History -->
+      <div class="card">
+        <div class="card-header">
+          Travel History
+        </div>
+        <div class="card-body">
+          <div class="history-list" id="historyList">
+            <!-- filled by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/tracking.js"></script>
+</body>
+</html>
