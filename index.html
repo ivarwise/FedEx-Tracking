@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SwiftTrack - Package Tracking Portal</title>
+  <title>Federal Express - Package Tracking Portal</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -15,11 +15,11 @@
       theme: {
         extend: {
           colors: {
-            swiftPurple: '#4D148C',
-            swiftOrange: '#FF6600',
-            swiftBg: '#F7F7F9',
-            swiftGreen: '#008A00',
-            swiftLightGreen: '#E6F4EA',
+            fedexPurple: '#4D148C',
+            fedexOrange: '#FF6600',
+            fedexBg: '#F7F7F9',
+            fedexGreen: '#008A00',
+            fedexLightGreen: '#E6F4EA',
           }
         }
       }
@@ -29,23 +29,23 @@
     .leaflet-container { font-family: inherit; z-index: 10; }
   </style>
 </head>
-<body class="bg-swiftBg text-gray-800 font-sans antialiased min-h-screen">
+<body class="bg-fedexBg text-gray-800 font-sans antialiased min-h-screen">
 
   <!-- Top Navigation Header -->
-  <header class="bg-swiftPurple text-white px-6 py-4 flex justify-between items-center shadow-md border-b border-purple-900 sticky top-0 z-50">
+  <header class="bg-fedexPurple text-white px-6 py-4 flex justify-between items-center shadow-md border-b border-purple-900 sticky top-0 z-50">
     <div class="flex items-center space-x-8">
       <div class="text-2xl font-black tracking-tighter cursor-pointer">
-        <span>Swift</span><span class="text-swiftOrange">Track</span>
+        <span>Federal </span><span class="text-fedexOrange">Express</span>
       </div>
       <nav class="hidden md:flex space-x-6 text-sm font-semibold">
-        <a href="#" class="text-white border-b-2 border-swiftOrange pb-1">Tracking</a>
+        <a href="#" class="text-white border-b-2 border-fedexOrange pb-1">Tracking</a>
         <a href="#" class="text-purple-200 hover:text-white transition">Shipping Services</a>
         <a href="#" class="text-purple-200 hover:text-white transition">Locations</a>
         <a href="#" class="text-purple-200 hover:text-white transition">Help Center</a>
       </nav>
     </div>
     <div class="text-xs font-semibold text-purple-200">
-      <i class="fa-solid fa-headset mr-1"></i> SwiftTrack Customer Support
+      <i class="fa-solid fa-headset mr-1"></i> Federal Express Support
     </div>
   </header>
 
@@ -54,7 +54,7 @@
     
     <!-- Left Navigation Bar -->
     <aside class="hidden md:block md:col-span-2 bg-white border-r border-gray-200 p-4 space-y-2 text-xs font-medium text-gray-600">
-      <a href="#" class="flex items-center space-x-3 p-3 rounded-lg bg-purple-50 text-swiftPurple font-bold">
+      <a href="#" class="flex items-center space-x-3 p-3 rounded-lg bg-purple-50 text-fedexPurple font-bold">
         <i class="fa-solid fa-box text-sm"></i> <span>Track a Shipment</span>
       </a>
       <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition">
@@ -72,9 +72,9 @@
       <div class="space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <h1 class="text-2xl font-black text-gray-900 flex items-center gap-2">
-            Tracking # <span id="dtTrackingNum" class="text-swiftPurple">--</span>
+            Tracking # <span id="dtTrackingNum" class="text-fedexPurple">--</span>
           </h1>
-          <button onclick="window.print()" class="text-xs font-semibold text-gray-600 hover:text-swiftPurple flex items-center gap-1.5 border bg-white px-3 py-1.5 rounded-md self-start sm:self-auto shadow-sm">
+          <button onclick="window.print()" class="text-xs font-semibold text-gray-600 hover:text-fedexPurple flex items-center gap-1.5 border bg-white px-3 py-1.5 rounded-md self-start sm:self-auto shadow-sm">
             <i class="fa-solid fa-print"></i> Print Details
           </button>
         </div>
@@ -84,11 +84,11 @@
           <input 
             type="text" 
             id="trackingInput" 
-            placeholder="Enter tracking code (e.g. ST-1234-5678)..." 
-            class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 text-sm font-medium focus:ring-2 focus:ring-swiftPurple outline-none bg-white shadow-sm"
+            placeholder="Enter tracking code (e.g. FX-1234-5678)..." 
+            class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 text-sm font-medium focus:ring-2 focus:ring-fedexPurple outline-none bg-white shadow-sm"
             required
           />
-          <button type="submit" class="bg-swiftPurple hover:bg-purple-900 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition shadow-sm">
+          <button type="submit" class="bg-fedexPurple hover:bg-purple-900 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition shadow-sm">
             Track
           </button>
         </form>
@@ -96,7 +96,7 @@
 
       <!-- Loading State -->
       <div id="loadingState" class="hidden text-center py-16">
-        <i class="fa-solid fa-circle-notch fa-spin text-4xl text-swiftPurple"></i>
+        <i class="fa-solid fa-circle-notch fa-spin text-4xl text-fedexPurple"></i>
         <p class="mt-3 text-sm font-semibold text-gray-600">Retrieving real-time package status...</p>
       </div>
 
@@ -116,14 +116,14 @@
           <div class="lg:col-span-7 bg-white rounded-xl border border-gray-200 p-6 shadow-sm flex flex-col justify-between space-y-6">
             <div>
               <div class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Estimated Delivery</div>
-              <div id="dtEstDelivery" class="text-2xl font-black text-swiftGreen mt-1">--</div>
+              <div id="dtEstDelivery" class="text-2xl font-black text-fedexGreen mt-1">--</div>
 
               <!-- Progress Timeline Bar -->
               <div class="my-6 relative">
                 <div class="h-2 bg-gray-200 rounded-full w-full"></div>
-                <div id="dtProgressBar" class="h-2 bg-swiftGreen rounded-full absolute top-0 left-0 transition-all duration-500" style="width: 25%;"></div>
+                <div id="dtProgressBar" class="h-2 bg-fedexGreen rounded-full absolute top-0 left-0 transition-all duration-500" style="width: 25%;"></div>
                 <div class="flex justify-between absolute -top-1 w-full">
-                  <span class="w-4 h-4 bg-swiftGreen border-2 border-white rounded-full"></span>
+                  <span class="w-4 h-4 bg-fedexGreen border-2 border-white rounded-full"></span>
                   <span id="step2Dot" class="w-4 h-4 bg-gray-300 border-2 border-white rounded-full"></span>
                   <span id="step3Dot" class="w-4 h-4 bg-gray-300 border-2 border-white rounded-full"></span>
                   <span id="step4Dot" class="w-4 h-4 bg-gray-300 border-2 border-white rounded-full"></span>
@@ -132,7 +132,7 @@
 
               <div class="flex items-center justify-between">
                 <div>
-                  <span id="dtStatusBadge" class="bg-swiftLightGreen text-swiftGreen font-bold text-xs px-3 py-1 rounded-full inline-block">IN TRANSIT</span>
+                  <span id="dtStatusBadge" class="bg-fedexLightGreen text-fedexGreen font-bold text-xs px-3 py-1 rounded-full inline-block">IN TRANSIT</span>
                   <div id="dtCurrentLocation" class="text-sm font-bold text-gray-800 mt-2">--</div>
                 </div>
               </div>
@@ -218,7 +218,6 @@
     const DEFAULT_LAT = 39.8283;
     const DEFAULT_LNG = -98.5795;
 
-    // Check query params on page load
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code') || urlParams.get('tracking');
@@ -277,7 +276,7 @@
       document.getElementById('dtRecipient').innerText = shipment.recipient_name;
       document.getElementById('dtDestCity').innerText = `${shipment.recipient_city}, ${shipment.recipient_state || ''} ${shipment.recipient_country}`;
 
-      document.getElementById('dtService').innerText = shipment.service_type || 'SwiftTrack Priority Overnight';
+      document.getElementById('dtService').innerText = shipment.service_type || 'Federal Express Priority Overnight';
       document.getElementById('dtWeight').innerText = `${shipment.weight_lbs || 0} lbs`;
       document.getElementById('dtPkgType').innerText = shipment.package_type || 'Package';
       document.getElementById('dtDimensions').innerText = shipment.dimensions || 'N/A';
@@ -309,10 +308,10 @@
         const timeStr = new Date(evt.event_time).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' });
         
         const div = document.createElement('div');
-        div.className = `flex items-start space-x-4 p-3 rounded-lg border ${isLatest ? 'bg-swiftLightGreen border-green-200' : 'border-gray-100'}`;
+        div.className = `flex items-start space-x-4 p-3 rounded-lg border ${isLatest ? 'bg-fedexLightGreen border-green-200' : 'border-gray-100'}`;
         div.innerHTML = `
-          <div class="w-32 text-right text-xs ${isLatest ? 'font-bold text-swiftGreen' : 'text-gray-400'}">${timeStr}</div>
-          <div class="w-5 h-5 rounded-full ${isLatest ? 'bg-swiftGreen' : 'bg-gray-300'} text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+          <div class="w-32 text-right text-xs ${isLatest ? 'font-bold text-fedexGreen' : 'text-gray-400'}">${timeStr}</div>
+          <div class="w-5 h-5 rounded-full ${isLatest ? 'bg-fedexGreen' : 'bg-gray-300'} text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5">
             <i class="fa-solid ${isLatest ? 'fa-truck' : 'fa-circle'}"></i>
           </div>
           <div class="flex-1 text-xs">
@@ -334,14 +333,14 @@
 
       if (lower.includes('delivered')) {
         bar.style.width = '100%';
-        step2.className = step3.className = step4.className = 'w-4 h-4 bg-swiftGreen border-2 border-white rounded-full';
+        step2.className = step3.className = step4.className = 'w-4 h-4 bg-fedexGreen border-2 border-white rounded-full';
       } else if (lower.includes('out for delivery')) {
         bar.style.width = '75%';
-        step2.className = step3.className = 'w-4 h-4 bg-swiftGreen border-2 border-white rounded-full';
+        step2.className = step3.className = 'w-4 h-4 bg-fedexGreen border-2 border-white rounded-full';
         step4.className = 'w-4 h-4 bg-gray-300 border-2 border-white rounded-full';
       } else if (lower.includes('transit')) {
         bar.style.width = '50%';
-        step2.className = 'w-4 h-4 bg-swiftGreen border-2 border-white rounded-full';
+        step2.className = 'w-4 h-4 bg-fedexGreen border-2 border-white rounded-full';
         step3.className = step4.className = 'w-4 h-4 bg-gray-300 border-2 border-white rounded-full';
       } else {
         bar.style.width = '25%';
@@ -393,10 +392,10 @@
           const container = document.getElementById('dtTravelHistory');
           const timeStr = new Date(payload.new.event_time).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' });
           const div = document.createElement('div');
-          div.className = 'flex items-start space-x-4 p-3 rounded-lg border bg-swiftLightGreen border-green-200 animate-pulse';
+          div.className = 'flex items-start space-x-4 p-3 rounded-lg border bg-fedexLightGreen border-green-200 animate-pulse';
           div.innerHTML = `
-            <div class="w-32 text-right text-xs font-bold text-swiftGreen">${timeStr}</div>
-            <div class="w-5 h-5 rounded-full bg-swiftGreen text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5"><i class="fa-solid fa-truck"></i></div>
+            <div class="w-32 text-right text-xs font-bold text-fedexGreen">${timeStr}</div>
+            <div class="w-5 h-5 rounded-full bg-fedexGreen text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5"><i class="fa-solid fa-truck"></i></div>
             <div class="flex-1 text-xs">
               <div class="font-bold text-gray-800">${payload.new.status}</div>
               <div class="text-gray-600">${payload.new.description || ''}</div>
