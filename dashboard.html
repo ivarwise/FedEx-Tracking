@@ -7,6 +7,8 @@
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <script>
@@ -18,134 +20,178 @@
             fedexOrange: '#FF6600',
             fedexBg: '#F7F7F9',
             fedexGreen: '#008A00',
+            receiptBg: '#F2EBF9',
           }
         }
       }
     }
   </script>
+  <style>
+    @media print {
+      body * { visibility: hidden; }
+      #printableReceiptArea, #printableReceiptArea * { visibility: visible; }
+      #printableReceiptArea { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
+      .no-print { display: none !important; }
+    }
+  </style>
 </head>
 <body class="bg-fedexBg text-gray-800 font-sans min-h-screen">
 
-  <!-- Top Admin Bar -->
-  <header class="bg-fedexPurple text-white px-6 py-4 shadow-md flex justify-between items-center">
+  <header class="bg-fedexPurple text-white px-6 py-4 shadow-md flex justify-between items-center no-print">
     <div class="flex items-center space-x-3">
       <div class="text-2xl font-black tracking-tighter">
         <span>Fed</span><span class="text-fedexOrange">Ex</span>
       </div>
-      <span class="bg-purple-800 text-purple-200 text-xs px-3 py-1 rounded-full font-semibold">Admin Workspace (Private)</span>
+      <span class="bg-purple-800 text-purple-200 text-xs px-3 py-1 rounded-full font-semibold">Admin Workspace</span>
     </div>
     <a href="index.html" target="_blank" class="bg-white/10 hover:bg-white/20 text-white text-xs px-4 py-2 rounded-lg font-semibold transition">
-      <i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i> Preview Customer Portal
+      <i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i> Customer Portal
     </a>
   </header>
 
-  <main class="max-w-7xl mx-auto p-6 space-y-8">
+  <main class="max-w-7xl mx-auto p-6 space-y-8 no-print">
     
-    <!-- SECTION 1: REGISTER NEW SHIPMENT -->
     <section class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-      <div class="flex justify-between items-center mb-6">
-        <div>
-          <h2 class="text-xl font-bold text-gray-800">Register New Shipment</h2>
-          <p class="text-xs text-gray-500">Generates a unique tracking code, sets custom dates, and creates printable receipts.</p>
-        </div>
-      </div>
+      <h2 class="text-xl font-bold text-gray-800 mb-1">Create Shipment & Generate Official Receipt</h2>
+      <p class="text-xs text-gray-500 mb-6">Fill in all fields below to generate an exact copy of the FedEx Shipment Receipt.</p>
 
       <form id="createShipmentForm" class="space-y-6">
-        <!-- Sender Details -->
+        
+        <!-- SENDER DETAILS -->
         <div>
-          <h3 class="text-xs font-bold text-fedexPurple uppercase tracking-wider mb-3"><i class="fa-solid fa-user-gear mr-1"></i> Sender (Origin)</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-            <input type="text" id="senderName" placeholder="Sender Full Name *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="senderPhone" placeholder="Phone Number" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="email" id="senderEmail" placeholder="Email Address" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="senderAddress" placeholder="Street Address *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none col-span-1 sm:col-span-2" />
-            <input type="text" id="senderCity" placeholder="City *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="senderState" placeholder="State/Province" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="senderCountry" placeholder="Country" value="United States" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <div class="flex gap-2">
-              <input type="number" step="any" id="originLat" placeholder="Origin Lat (e.g. 34.0522)" class="border p-2.5 rounded-lg text-xs w-1/2 outline-none" />
-              <input type="number" step="any" id="originLng" placeholder="Origin Lng (e.g. -118.2437)" class="border p-2.5 rounded-lg text-xs w-1/2 outline-none" />
+          <h3 class="text-xs font-bold text-fedexPurple uppercase tracking-wider mb-3"><i class="fa-solid fa-user-gear mr-1"></i> From (Sender)</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <input type="text" id="senderName" placeholder="Full Name *" required class="border p-2 rounded focus:ring-1 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="senderCompany" placeholder="Company (e.g. Doe Electronics)" class="border p-2 rounded focus:ring-1 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="senderPhone" placeholder="Phone (e.g. (213) 555-0112)" class="border p-2 rounded focus:ring-1 focus:ring-fedexPurple outline-none" />
+            <input type="email" id="senderEmail" placeholder="Email Address" class="border p-2 rounded focus:ring-1 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="senderAddress" placeholder="Street Address *" required class="border p-2 rounded focus:ring-1 focus:ring-fedexPurple outline-none col-span-2" />
+            <input type="text" id="senderCity" placeholder="City *" required class="border p-2 rounded focus:ring-1 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="senderState" placeholder="State & Zip (e.g. Los Angeles, CA 90017)" class="border p-2 rounded focus:ring-1 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="senderCountry" placeholder="Country" value="United States" class="border p-2 rounded focus:ring-1 focus:ring-fedexPurple outline-none" />
+          </div>
+        </div>
+
+        <hr class="border-gray-100" />
+
+        <!-- RECIPIENT DETAILS -->
+        <div>
+          <h3 class="text-xs font-bold text-fedexPurple uppercase tracking-wider mb-3"><i class="fa-solid fa-location-dot mr-1"></i> To (Recipient)</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <input type="text" id="recipientName" placeholder="Full Name *" required class="border p-2 rounded focus:ring-1 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="recipientCompany" placeholder="Company (e.g. Smith Solutions LLC)" class="border p-2 rounded focus:ring-1 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="recipientPhone" placeholder="Phone (e.g. (212) 555-0189)" class="border p-2 rounded focus:ring-1 focus:ring-fedexPurple outline-none" />
+            <input type="email" id="recipientEmail" placeholder="Email Address" class="border p-2 rounded focus:ring-1 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="recipientAddress" placeholder="Street Address *" required class="border p-2 rounded focus:ring-1 focus:ring-fedexPurple outline-none col-span-2" />
+            <input type="text" id="recipientCity" placeholder="City *" required class="border p-2 rounded focus:ring-1 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="recipientState" placeholder="State & Zip (e.g. New York, NY 10001)" class="border p-2 rounded focus:ring-1 focus:ring-fedexPurple outline-none" />
+            <input type="text" id="recipientCountry" placeholder="Country" value="United States" class="border p-2 rounded focus:ring-1 focus:ring-fedexPurple outline-none" />
+          </div>
+        </div>
+
+        <hr class="border-gray-100" />
+
+        <!-- SHIPMENT & DELIVERY SPECS -->
+        <div>
+          <h3 class="text-xs font-bold text-fedexPurple uppercase tracking-wider mb-3"><i class="fa-solid fa-box mr-1"></i> Shipment & Delivery Details</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Service Type</label>
+              <input type="text" id="serviceType" value="FedEx Priority Overnight" class="w-full border p-2 rounded outline-none" />
+            </div>
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Package Type</label>
+              <input type="text" id="packageType" value="Package" class="w-full border p-2 rounded outline-none" />
+            </div>
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Weight Display</label>
+              <input type="text" id="weightDisplay" value="2.50 lbs / 1.13 kg" class="w-full border p-2 rounded outline-none" />
+            </div>
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Dimensions</label>
+              <input type="text" id="dimensions" value="12 x 8 x 6 in" class="w-full border p-2 rounded outline-none" />
+            </div>
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Total Pieces</label>
+              <input type="number" id="totalPieces" value="1" class="w-full border p-2 rounded outline-none" />
+            </div>
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Declared Value</label>
+              <input type="text" id="declaredValue" value="$250.00 USD" class="w-full border p-2 rounded outline-none" />
+            </div>
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Signature Option</label>
+              <input type="text" id="signatureOption" value="No Signature Required" class="w-full border p-2 rounded outline-none" />
+            </div>
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Reference Code</label>
+              <input type="text" id="refCode" value="INV-2025-00148" class="w-full border p-2 rounded outline-none" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs mt-3">
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Ship Date Display</label>
+              <input type="text" id="shipDateText" value="May 23, 2025" class="w-full border p-2 rounded outline-none" />
+            </div>
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Expected Delivery Display</label>
+              <input type="text" id="expectedDeliveryText" value="May 26, 2025 by 8:00 PM" class="w-full border p-2 rounded outline-none" />
+            </div>
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Delivery Instructions</label>
+              <input type="text" id="deliveryInstructions" value="Leave at front desk" class="w-full border p-2 rounded outline-none" />
             </div>
           </div>
         </div>
 
         <hr class="border-gray-100" />
 
-        <!-- Recipient Details -->
+        <!-- CHARGES -->
         <div>
-          <h3 class="text-xs font-bold text-fedexPurple uppercase tracking-wider mb-3"><i class="fa-solid fa-location-dot mr-1"></i> Recipient (Destination)</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-            <input type="text" id="recipientName" placeholder="Recipient Full Name *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="recipientPhone" placeholder="Phone Number" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="email" id="recipientEmail" placeholder="Email Address" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="recipientAddress" placeholder="Street Address *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none col-span-1 sm:col-span-2" />
-            <input type="text" id="recipientCity" placeholder="City *" required class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="recipientState" placeholder="State/Province" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="recipientCountry" placeholder="Country" value="United States" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <div class="flex gap-2">
-              <input type="number" step="any" id="destLat" placeholder="Dest Lat (e.g. 40.7128)" class="border p-2.5 rounded-lg text-xs w-1/2 outline-none" />
-              <input type="number" step="any" id="destLng" placeholder="Dest Lng (e.g. -74.0060)" class="border p-2.5 rounded-lg text-xs w-1/2 outline-none" />
+          <h3 class="text-xs font-bold text-fedexPurple uppercase tracking-wider mb-3"><i class="fa-solid fa-receipt mr-1"></i> Charges breakdown</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Base Charge</label>
+              <input type="text" id="chargeBase" value="$45.25" class="w-full border p-2 rounded outline-none" />
+            </div>
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Fuel Surcharge</label>
+              <input type="text" id="chargeFuel" value="$4.20" class="w-full border p-2 rounded outline-none" />
+            </div>
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Residential Delivery</label>
+              <input type="text" id="chargeRes" value="$4.75" class="w-full border p-2 rounded outline-none" />
+            </div>
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Total Amount (USD)</label>
+              <input type="text" id="chargeTotal" value="$54.20 USD" class="w-full font-bold text-fedexPurple border p-2 rounded outline-none" />
             </div>
           </div>
         </div>
 
-        <hr class="border-gray-100" />
-
-        <!-- Package, Service & Manual Date Settings -->
-        <div>
-          <h3 class="text-xs font-bold text-fedexPurple uppercase tracking-wider mb-3"><i class="fa-solid fa-box mr-1"></i> Package Details & Timestamps</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 text-sm">
-            <select id="packageType" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none bg-white">
-              <option value="Package">Package</option>
-              <option value="Envelope">Envelope / Letter</option>
-              <option value="Freight">Freight / Pallet</option>
-            </select>
-            <input type="number" step="0.1" id="weightLbs" placeholder="Weight (lbs)" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <input type="text" id="dimensions" placeholder="Dimensions (e.g. 12x8x6 in)" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            <select id="serviceType" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none bg-white">
-              <option value="FedEx Priority Overnight">FedEx Priority Overnight</option>
-              <option value="FedEx Standard Express">FedEx Standard Express</option>
-              <option value="FedEx Ground">FedEx Ground</option>
-            </select>
-          </div>
-
-          <!-- Manual Date & Time Inputs -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mt-4">
-            <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Shipping Date & Time (Origin Timestamp)</label>
-              <input type="datetime-local" id="shipDate" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Estimated Delivery Date & Time (ETA)</label>
-              <input type="datetime-local" id="estDeliveryDate" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-fedexPurple outline-none" />
-            </div>
-          </div>
-        </div>
-
-        <button type="submit" id="submitBtn" class="bg-fedexOrange hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-lg text-sm transition flex items-center justify-center space-x-2">
-          <i class="fa-solid fa-plus-circle"></i> <span>Generate Tracking Code & Create Shipment</span>
+        <button type="submit" id="submitBtn" class="bg-fedexOrange hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-lg text-sm transition flex items-center justify-center space-x-2 w-full sm:w-auto">
+          <i class="fa-solid fa-plus-circle"></i> <span>Create Shipment & Generate Receipt</span>
         </button>
       </form>
     </section>
 
-    <!-- SECTION 2: SHIPMENT MANAGEMENT TABLE -->
+    <!-- LIST OF RECENT SHIPMENTS -->
     <section class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-      <h2 class="text-xl font-bold text-gray-800 mb-4">Active System Shipments</h2>
-      
+      <h2 class="text-xl font-bold text-gray-800 mb-4">Saved Shipments</h2>
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
             <tr class="bg-gray-50 border-b border-gray-200 text-gray-500 font-semibold uppercase">
-              <th class="p-3">Tracking Code</th>
+              <th class="p-3">Tracking Number</th>
               <th class="p-3">Sender → Recipient</th>
-              <th class="p-3">Status</th>
-              <th class="p-3">Current Location</th>
+              <th class="p-3">Total Charges</th>
               <th class="p-3">Actions</th>
             </tr>
           </thead>
           <tbody id="shipmentsTableBody" class="divide-y divide-gray-100">
             <tr>
-              <td colspan="5" class="p-4 text-center text-gray-400">Loading active shipments...</td>
+              <td colspan="4" class="p-4 text-center text-gray-400">Loading shipments...</td>
             </tr>
           </tbody>
         </table>
@@ -154,101 +200,216 @@
 
   </main>
 
-  <!-- RECEIPT MODAL (PRINTABLE) -->
-  <div id="receiptModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative" id="printableReceipt">
-      <div class="flex justify-between items-center border-b border-gray-100 pb-3">
-        <div class="text-xl font-black">Fed<span class="text-fedexOrange">Ex</span></div>
-        <div class="text-right">
-          <div class="text-xs font-bold text-gray-400">OFFICIAL RECEIPT</div>
-          <div id="rcptDate" class="text-[10px] text-gray-500">--</div>
+  <!-- RECEIPT MODAL (EXACT DUPICATE OF THE PROVIDED RECEIPT IMAGE) -->
+  <div id="receiptModal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-2 sm:p-6 z-50 overflow-y-auto">
+    <div class="bg-white max-w-3xl w-full p-8 rounded-lg shadow-2xl relative space-y-6 text-gray-800" id="printableReceiptArea">
+      
+      <!-- TOP ACTION BAR (Hidden when printing/screenshotting) -->
+      <div class="flex justify-between items-center border-b pb-4 no-print">
+        <span class="text-xs font-bold text-fedexPurple uppercase tracking-wider">Official FedEx Receipt Preview</span>
+        <div class="flex space-x-2">
+          <button onclick="window.print()" class="bg-fedexPurple hover:bg-purple-900 text-white text-xs px-4 py-2 rounded font-bold flex items-center gap-1">
+            <i class="fa-solid fa-print"></i> Print Receipt
+          </button>
+          <button onclick="closeReceiptModal()" class="border text-xs px-4 py-2 rounded font-semibold hover:bg-gray-50">Close</button>
         </div>
       </div>
 
-      <div class="bg-purple-50 p-4 rounded-lg text-center border border-purple-100">
-        <div class="text-xs text-purple-700 font-semibold uppercase">Tracking Code</div>
-        <div id="rcptTrackingNum" class="text-2xl font-black text-fedexPurple tracking-wider">--</div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-4 text-xs">
-        <div class="bg-gray-50 p-3 rounded">
-          <span class="text-gray-400 text-[10px] font-bold block">FROM (SENDER)</span>
-          <div id="rcptSender" class="font-bold">--</div>
-          <div id="rcptSenderAddr" class="text-gray-500">--</div>
-        </div>
-        <div class="bg-gray-50 p-3 rounded">
-          <span class="text-gray-400 text-[10px] font-bold block">TO (RECIPIENT)</span>
-          <div id="rcptRecipient" class="font-bold">--</div>
-          <div id="rcptRecipientAddr" class="text-gray-500">--</div>
-        </div>
-      </div>
-
-      <div class="border-t border-b border-gray-100 py-3 grid grid-cols-3 gap-2 text-[11px]">
-        <div><span class="text-gray-400 block">Service</span><span id="rcptService" class="font-bold">--</span></div>
-        <div><span class="text-gray-400 block">Weight</span><span id="rcptWeight" class="font-bold">--</span></div>
-        <div><span class="text-gray-400 block">Type</span><span id="rcptType" class="font-bold">--</span></div>
-      </div>
-
-      <div class="flex justify-between items-center pt-2 print:hidden">
-        <button onclick="closeReceiptModal()" class="px-4 py-2 border rounded-lg text-xs font-semibold hover:bg-gray-50">Close</button>
-        <button onclick="window.print()" class="px-4 py-2 bg-fedexPurple text-white rounded-lg text-xs font-bold hover:bg-purple-900 flex items-center gap-1.5">
-          <i class="fa-solid fa-print"></i> Print Receipt
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- UPDATE STATUS & EVENT MODAL WITH CUSTOM DATE/TIME -->
-  <div id="updateModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-      <h3 class="text-base font-bold text-gray-800">Update Location & Log Event</h3>
-      <input type="hidden" id="updateShipmentId" />
-      <input type="hidden" id="updateTrackingNum" />
-
-      <div class="space-y-3 text-xs">
+      <!-- HEADER ROW -->
+      <div class="flex justify-between items-start">
         <div>
-          <label class="font-semibold block mb-1">Status Phase</label>
-          <select id="updateStatus" class="w-full border p-2.5 rounded-lg outline-none bg-white font-medium">
-            <option value="Pending">Pending</option>
-            <option value="Picked Up">Picked Up</option>
-            <option value="In Transit">In Transit</option>
-            <option value="Arrived at Facility">Arrived at Facility</option>
-            <option value="Out for Delivery">Out for Delivery</option>
-            <option value="Delivered">Delivered</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="font-semibold block mb-1">Current Location (City, State/Country)</label>
-          <input type="text" id="updateLocation" placeholder="e.g. Memphis Hub, TN" class="w-full border p-2.5 rounded-lg outline-none" />
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="font-semibold block mb-1">Current Latitude</label>
-            <input type="number" step="any" id="updateLat" placeholder="e.g. 35.1495" class="w-full border p-2.5 rounded-lg outline-none" />
+          <div class="text-4xl font-black tracking-tight text-fedexPurple">
+            <span>Fed</span><span class="text-fedexOrange">Ex</span><span class="text-xs align-super text-fedexOrange">®</span>
           </div>
-          <div>
-            <label class="font-semibold block mb-1">Current Longitude</label>
-            <input type="number" step="any" id="updateLng" placeholder="e.g. -90.0490" class="w-full border p-2.5 rounded-lg outline-none" />
+          <h1 class="text-2xl font-bold text-purple-900 mt-2">Shipment Receipt</h1>
+          <p class="text-xs text-gray-500">Thank you for shipping with FedEx.</p>
+        </div>
+
+        <div class="text-right text-xs space-y-1">
+          <div class="no-print">
+            <button onclick="window.print()" class="text-fedexPurple font-semibold text-xs flex items-center gap-1 justify-end ml-auto mb-2">
+              <i class="fa-solid fa-print"></i> Print Receipt
+            </button>
+          </div>
+          <div class="grid grid-cols-2 gap-x-3 text-left">
+            <span class="font-bold text-gray-500 uppercase text-[10px]">SHIP DATE</span>
+            <span id="rShipDate" class="font-medium text-gray-800">--</span>
+            
+            <span class="font-bold text-gray-500 uppercase text-[10px]">RECEIPT #</span>
+            <span id="rReceiptNum" class="font-medium text-gray-800">--</span>
+
+            <span class="font-bold text-gray-500 uppercase text-[10px] mt-1">LOCATION</span>
+            <div class="text-[11px] text-gray-700 font-medium">
+              <div>FedEx Ship Center</div>
+              <div>123 Market Street</div>
+              <div>Los Angeles, CA 90001</div>
+              <div>(213) 555-0198</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRACKING & BARCODE CARD -->
+      <div class="bg-receiptBg border border-purple-100 rounded-xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">TRACKING NUMBER</div>
+          <div id="rTrackingNumFormatted" class="text-3xl font-black text-gray-900 tracking-wider">--</div>
+          <div class="mt-2 bg-white px-3 py-1.5 rounded border border-purple-100 inline-block">
+            <svg id="barcodeCanvas"></svg>
           </div>
         </div>
 
-        <div>
-          <label class="font-semibold block mb-1">Custom Event Date & Time</label>
-          <input type="datetime-local" id="updateEventTime" class="w-full border p-2.5 rounded-lg outline-none" />
-        </div>
-
-        <div>
-          <label class="font-semibold block mb-1">Event Description</label>
-          <input type="text" id="updateDescription" placeholder="e.g. Departed sorting facility" class="w-full border p-2.5 rounded-lg outline-none" />
+        <div class="flex items-center space-x-3 bg-white p-3 rounded-lg border border-purple-100 max-w-xs">
+          <div class="bg-fedexPurple text-white p-3 rounded-lg text-lg">
+            <i class="fa-solid fa-box"></i>
+          </div>
+          <div class="text-xs">
+            <div class="font-bold text-gray-900">Keep this receipt for your records.</div>
+            <div class="text-gray-500 text-[11px] mt-0.5">To track your package, visit fedex.com or scan the barcode.</div>
+          </div>
         </div>
       </div>
 
-      <div class="flex justify-end space-x-2 pt-2">
-        <button onclick="closeUpdateModal()" class="px-4 py-2 border rounded-lg text-xs font-semibold">Cancel</button>
-        <button onclick="saveShipmentUpdate()" class="px-4 py-2 bg-fedexGreen text-white rounded-lg text-xs font-bold hover:bg-green-700">Save & Publish</button>
+      <!-- SENDER & RECIPIENT GRID -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs relative">
+        <!-- Arrow divider -->
+        <div class="hidden md:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white border border-purple-200 rounded-full w-7 h-7 items-center justify-center text-fedexPurple z-10 shadow-sm">
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </div>
+
+        <!-- SENDER -->
+        <div class="border border-gray-200 rounded-xl p-4 space-y-2 bg-white">
+          <div class="text-fedexPurple font-bold text-[11px] flex items-center gap-2 border-b pb-2">
+            <i class="fa-regular fa-user"></i> FROM (SENDER)
+          </div>
+          <div class="grid grid-cols-3 gap-y-1 pt-1">
+            <span class="font-bold text-gray-700">Name:</span><span id="rSenderName" class="col-span-2 text-gray-800">--</span>
+            <span class="font-bold text-gray-700">Company:</span><span id="rSenderCompany" class="col-span-2 text-gray-800">--</span>
+            <span class="font-bold text-gray-700">Address:</span><span id="rSenderAddress" class="col-span-2 text-gray-800">--</span>
+            <span class="font-bold text-gray-700">Country:</span><span id="rSenderCountry" class="col-span-2 text-gray-800">--</span>
+            <span class="font-bold text-gray-700">Phone:</span><span id="rSenderPhone" class="col-span-2 text-gray-800">--</span>
+            <span class="font-bold text-gray-700">Email:</span><span id="rSenderEmail" class="col-span-2 text-gray-800">--</span>
+          </div>
+        </div>
+
+        <!-- RECIPIENT -->
+        <div class="border border-gray-200 rounded-xl p-4 space-y-2 bg-white">
+          <div class="text-fedexPurple font-bold text-[11px] flex items-center gap-2 border-b pb-2">
+            <i class="fa-regular fa-user"></i> TO (RECIPIENT)
+          </div>
+          <div class="grid grid-cols-3 gap-y-1 pt-1">
+            <span class="font-bold text-gray-700">Name:</span><span id="rRecipientName" class="col-span-2 text-gray-800">--</span>
+            <span class="font-bold text-gray-700">Company:</span><span id="rRecipientCompany" class="col-span-2 text-gray-800">--</span>
+            <span class="font-bold text-gray-700">Address:</span><span id="rRecipientAddress" class="col-span-2 text-gray-800">--</span>
+            <span class="font-bold text-gray-700">Country:</span><span id="rRecipientCountry" class="col-span-2 text-gray-800">--</span>
+            <span class="font-bold text-gray-700">Phone:</span><span id="rRecipientPhone" class="col-span-2 text-gray-800">--</span>
+            <span class="font-bold text-gray-700">Email:</span><span id="rRecipientEmail" class="col-span-2 text-gray-800">--</span>
+          </div>
+        </div>
       </div>
+
+      <!-- SHIPMENT DETAILS -->
+      <div class="border-t border-b py-3 text-xs space-y-2">
+        <div class="text-fedexPurple font-bold text-[11px] flex items-center gap-1.5">
+          <i class="fa-solid fa-box text-xs"></i> SHIPMENT DETAILS
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-6 gap-2 text-[11px]">
+          <div><span class="text-gray-400 font-bold block uppercase text-[9px]">SERVICE</span><span id="rService" class="font-semibold text-gray-800">--</span></div>
+          <div><span class="text-gray-400 font-bold block uppercase text-[9px]">PACKAGE TYPE</span><span id="rPkgType" class="font-semibold text-gray-800">--</span></div>
+          <div><span class="text-gray-400 font-bold block uppercase text-[9px]">WEIGHT</span><span id="rWeight" class="font-semibold text-gray-800">--</span></div>
+          <div><span class="text-gray-400 font-bold block uppercase text-[9px]">DIMENSIONS</span><span id="rDimensions" class="font-semibold text-gray-800">--</span></div>
+          <div><span class="text-gray-400 font-bold block uppercase text-[9px]">TOTAL PIECES</span><span id="rPieces" class="font-semibold text-gray-800">--</span></div>
+          <div><span class="text-gray-400 font-bold block uppercase text-[9px]">DECLARED VALUE</span><span id="rValue" class="font-semibold text-gray-800">--</span></div>
+        </div>
+      </div>
+
+      <!-- DELIVERY DETAILS -->
+      <div class="border-b pb-3 text-xs space-y-2">
+        <div class="text-fedexPurple font-bold text-[11px] flex items-center gap-1.5">
+          <i class="fa-solid fa-location-dot text-xs"></i> DELIVERY DETAILS
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px]">
+          <div>
+            <span class="text-gray-400 font-bold block uppercase text-[9px]">EXPECTED DELIVERY</span>
+            <span id="rExpDelivery" class="font-bold text-fedexGreen block">--</span>
+            <span class="text-[10px] text-gray-500">On Time</span>
+          </div>
+          <div>
+            <span class="text-gray-400 font-bold block uppercase text-[9px]">SIGNATURE OPTION</span>
+            <span id="rSignature" class="font-semibold text-gray-800">--</span>
+          </div>
+          <div>
+            <span class="text-gray-400 font-bold block uppercase text-[9px]">DELIVERY INSTRUCTIONS</span>
+            <span id="rInstructions" class="font-semibold text-gray-800">--</span>
+          </div>
+          <div>
+            <span class="text-gray-400 font-bold block uppercase text-[9px]">REFERENCE</span>
+            <span id="rReference" class="font-semibold text-gray-800">--</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHARGES & NEED HELP FOOTER -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 text-xs pt-1">
+        
+        <!-- Charges Table -->
+        <div class="md:col-span-6 space-y-2">
+          <div class="text-fedexPurple font-bold text-[11px] flex items-center gap-1.5">
+            <i class="fa-solid fa-receipt text-xs"></i> CHARGES
+          </div>
+          <div class="border border-gray-200 rounded-lg overflow-hidden">
+            <table class="w-full text-left border-collapse text-[11px]">
+              <thead class="bg-gray-50 text-gray-500 font-bold uppercase text-[9px]">
+                <tr>
+                  <th class="p-2 border-b">DESCRIPTION</th>
+                  <th class="p-2 border-b text-right">AMOUNT (USD)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 text-gray-700">
+                <tr><td class="p-2" id="rChargeServiceLabel">FedEx Priority Overnight</td><td class="p-2 text-right font-medium" id="rChargeBase">$45.25</td></tr>
+                <tr><td class="p-2">Fuel Surcharge</td><td class="p-2 text-right font-medium" id="rChargeFuel">$4.20</td></tr>
+                <tr><td class="p-2">Residential Delivery</td><td class="p-2 text-right font-medium" id="rChargeRes">$4.75</td></tr>
+                <tr class="bg-purple-50 text-fedexPurple font-bold">
+                  <td class="p-2 uppercase">TOTAL</td>
+                  <td class="p-2 text-right text-sm" id="rChargeTotal">$54.20 USD</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Need Help Box with QR Code -->
+        <div class="md:col-span-6 bg-receiptBg border border-purple-100 rounded-xl p-4 flex items-center justify-between">
+          <div class="space-y-2 text-xs">
+            <div class="text-fedexPurple font-bold flex items-center gap-1.5 text-[11px]">
+              <i class="fa-solid fa-headset"></i> NEED HELP?
+            </div>
+            <div class="space-y-1 text-gray-700 text-[11px]">
+              <div><span class="text-gray-400 font-bold mr-2">Visit</span> fedex.com/support</div>
+              <div><span class="text-gray-400 font-bold mr-2">Call</span> 1.800.GoFedEx (1.800.463.3339)</div>
+            </div>
+            <div class="text-[10px] text-gray-500">Scan the QR code to track your shipment</div>
+          </div>
+          <div class="bg-white p-2 rounded border border-purple-200 shrink-0">
+            <div id="qrCodeContainer"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FOOTER -->
+      <div class="border-t border-dashed pt-4 flex justify-between items-end text-[11px] text-gray-600">
+        <div>
+          <div class="font-bold text-fedexPurple">Thank you for choosing FedEx.</div>
+          <div class="text-gray-500 text-[10px]">We appreciate your business.</div>
+        </div>
+        <div class="text-right text-[10px] text-gray-500">
+          <div>FedEx Ship Center</div>
+          <div>123 Market Street, Los Angeles, CA 90001</div>
+          <div>(213) 555-0198</div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -257,102 +418,160 @@
     const SUPABASE_KEY = 'sb_publishable_vl_XazGVbpvyobavVnPqUg_VfqGGZ5B';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const now = new Date();
-      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      document.getElementById('shipDate').value = now.toISOString().slice(0, 16);
-      
-      const future = new Date(Date.now() + 86400000 * 3);
-      future.setMinutes(future.getMinutes() - future.getTimezoneOffset());
-      document.getElementById('estDeliveryDate').value = future.toISOString().slice(0, 16);
+    window.addEventListener('DOMContentLoaded', fetchAllShipments);
 
-      fetchAllShipments();
-    });
+    function generate12DigitTracking() {
+      const p1 = Math.floor(1000 + Math.random() * 9000);
+      const p2 = Math.floor(1000 + Math.random() * 9000);
+      const p3 = Math.floor(1000 + Math.random() * 9000);
+      return `${p1}${p2}${p3}`;
+    }
 
-    function generateTrackingNumber() {
-      const r1 = Math.floor(1000 + Math.random() * 9000);
-      const r2 = Math.floor(1000 + Math.random() * 9000);
-      return `FX-${r1}-${r2}`;
+    function generateReceiptNumber() {
+      const today = new Date();
+      const m = String(today.getMonth() + 1).padStart(2, '0');
+      const d = String(today.getDate()).padStart(2, '0');
+      const rand = Math.floor(10000 + Math.random() * 90000);
+      return `FX-${today.getFullYear()}-${m}${d}-${rand}`;
     }
 
     document.getElementById('createShipmentForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const submitBtn = document.getElementById('submitBtn');
       submitBtn.disabled = true;
-      submitBtn.innerText = 'Creating Shipment...';
+      submitBtn.innerText = 'Generating Receipt...';
 
-      const trackingNumber = generateTrackingNumber();
+      const rawTracking = generate12DigitTracking();
+      const receiptNum = generateReceiptNumber();
 
-      const origLat = parseFloat(document.getElementById('originLat').value) || 34.0522;
-      const origLng = parseFloat(document.getElementById('originLng').value) || -118.2437;
-      const destLat = parseFloat(document.getElementById('destLat').value) || 40.7128;
-      const destLng = parseFloat(document.getElementById('destLng').value) || -74.0060;
-
-      const userShipDate = document.getElementById('shipDate').value ? new Date(document.getElementById('shipDate').value).toISOString() : new Date().toISOString();
-      const userEstDelivery = document.getElementById('estDeliveryDate').value ? new Date(document.getElementById('estDeliveryDate').value).toISOString() : new Date(Date.now() + 86400000 * 3).toISOString();
-
-      const newShipment = {
-        tracking_number: trackingNumber,
-        status: 'Picked Up',
+      const record = {
+        tracking_number: rawTracking,
+        receipt_number: receiptNum,
         sender_name: document.getElementById('senderName').value,
-        sender_phone: document.getElementById('senderPhone').value,
-        sender_email: document.getElementById('senderEmail').value,
+        sender_company: document.getElementById('senderCompany').value || '',
+        sender_phone: document.getElementById('senderPhone').value || '',
+        sender_email: document.getElementById('senderEmail').value || '',
         sender_address: document.getElementById('senderAddress').value,
         sender_city: document.getElementById('senderCity').value,
-        sender_state: document.getElementById('senderState').value,
-        sender_country: document.getElementById('senderCountry').value,
+        sender_state: document.getElementById('senderState').value || '',
+        sender_country: document.getElementById('senderCountry').value || 'United States',
         recipient_name: document.getElementById('recipientName').value,
-        recipient_phone: document.getElementById('recipientPhone').value,
-        recipient_email: document.getElementById('recipientEmail').value,
+        recipient_company: document.getElementById('recipientCompany').value || '',
+        recipient_phone: document.getElementById('recipientPhone').value || '',
+        recipient_email: document.getElementById('recipientEmail').value || '',
         recipient_address: document.getElementById('recipientAddress').value,
         recipient_city: document.getElementById('recipientCity').value,
-        recipient_state: document.getElementById('recipientState').value,
-        recipient_country: document.getElementById('recipientCountry').value,
-        package_type: document.getElementById('packageType').value,
-        weight_lbs: parseFloat(document.getElementById('weightLbs').value) || 1.0,
-        dimensions: document.getElementById('dimensions').value || '10x6x4 in',
+        recipient_state: document.getElementById('recipientState').value || '',
+        recipient_country: document.getElementById('recipientCountry').value || 'United States',
         service_type: document.getElementById('serviceType').value,
-        origin_lat: origLat,
-        origin_lng: origLng,
-        dest_lat: destLat,
-        dest_lng: destLng,
-        current_lat: origLat,
-        current_lng: origLng,
-        current_location: `${document.getElementById('senderCity').value}, ${document.getElementById('senderState').value || ''}`,
-        ship_date: userShipDate,
-        estimated_delivery: userEstDelivery
+        package_type: document.getElementById('packageType').value,
+        weight_display: document.getElementById('weightDisplay').value,
+        dimensions: document.getElementById('dimensions').value,
+        total_pieces: document.getElementById('totalPieces').value,
+        declared_value: document.getElementById('declaredValue').value,
+        signature_option: document.getElementById('signatureOption').value,
+        ref_code: document.getElementById('refCode').value,
+        ship_date_text: document.getElementById('shipDateText').value,
+        expected_delivery_text: document.getElementById('expectedDeliveryText').value,
+        delivery_instructions: document.getElementById('deliveryInstructions').value,
+        charge_base: document.getElementById('chargeBase').value,
+        charge_fuel: document.getElementById('chargeFuel').value,
+        charge_res: document.getElementById('chargeRes').value,
+        charge_total: document.getElementById('chargeTotal').value,
+        status: 'Picked Up',
+        current_location: `${document.getElementById('senderCity').value}`
       };
 
-      const { data: shipment, error: shipErr } = await supabaseClient
+      const { data: shipment, error } = await supabaseClient
         .from('shipments')
-        .insert([newShipment])
+        .insert([record])
         .select()
         .single();
 
-      if (shipErr) {
-        alert('Error creating shipment: ' + shipErr.message);
+      if (error) {
+        alert('Supabase Insert Error: ' + error.message);
         submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-plus-circle"></i> <span>Create Shipment & Generate Receipt</span>';
         return;
       }
 
       await supabaseClient.from('tracking_events').insert([{
         shipment_id: shipment.id,
-        tracking_number: trackingNumber,
+        tracking_number: rawTracking,
         status: 'Picked Up',
         location: shipment.current_location,
-        description: 'Package received at FedEx origin facility',
-        event_time: userShipDate,
-        lat: origLat,
-        lng: origLng
+        description: 'Shipment info received at FedEx location',
+        event_time: new Date().toISOString()
       }]);
 
       submitBtn.disabled = false;
-      submitBtn.innerHTML = '<i class="fa-solid fa-plus-circle"></i> <span>Generate Tracking Code & Create Shipment</span>';
-      document.getElementById('createShipmentForm').reset();
-
+      submitBtn.innerHTML = '<i class="fa-solid fa-plus-circle"></i> <span>Create Shipment & Generate Receipt</span>';
+      
       openReceiptModal(shipment);
       fetchAllShipments();
     });
+
+    function openReceiptModal(s) {
+      document.getElementById('rShipDate').innerText = s.ship_date_text || 'May 23, 2025';
+      document.getElementById('rReceiptNum').innerText = s.receipt_number || 'FX-2025-0523-88164';
+
+      const formattedTracking = s.tracking_number.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3');
+      document.getElementById('rTrackingNumFormatted').innerText = formattedTracking;
+
+      JsBarcode("#barcodeCanvas", s.tracking_number, {
+        format: "CODE128",
+        width: 1.8,
+        height: 38,
+        displayValue: false
+      });
+
+      document.getElementById('rSenderName').innerText = s.sender_name;
+      document.getElementById('rSenderCompany').innerText = s.sender_company || '--';
+      document.getElementById('rSenderAddress').innerText = `${s.sender_address}, ${s.sender_city} ${s.sender_state}`;
+      document.getElementById('rSenderCountry').innerText = s.sender_country;
+      document.getElementById('rSenderPhone').innerText = s.sender_phone || '--';
+      document.getElementById('rSenderEmail').innerText = s.sender_email || '--';
+
+      document.getElementById('rRecipientName').innerText = s.recipient_name;
+      document.getElementById('rRecipientCompany').innerText = s.recipient_company || '--';
+      document.getElementById('rRecipientAddress').innerText = `${s.recipient_address}, ${s.recipient_city} ${s.recipient_state}`;
+      document.getElementById('rRecipientCountry').innerText = s.recipient_country;
+      document.getElementById('rRecipientPhone').innerText = s.recipient_phone || '--';
+      document.getElementById('rRecipientEmail').innerText = s.recipient_email || '--';
+
+      document.getElementById('rService').innerText = s.service_type;
+      document.getElementById('rPkgType').innerText = s.package_type;
+      document.getElementById('rWeight').innerText = s.weight_display;
+      document.getElementById('rDimensions').innerText = s.dimensions;
+      document.getElementById('rPieces').innerText = s.total_pieces;
+      document.getElementById('rValue').innerText = s.declared_value;
+
+      document.getElementById('rExpDelivery').innerText = s.expected_delivery_text;
+      document.getElementById('rSignature').innerText = s.signature_option;
+      document.getElementById('rInstructions').innerText = s.delivery_instructions;
+      document.getElementById('rReference').innerText = s.ref_code;
+
+      document.getElementById('rChargeServiceLabel').innerText = s.service_type;
+      document.getElementById('rChargeBase').innerText = s.charge_base;
+      document.getElementById('rChargeFuel').innerText = s.charge_fuel;
+      document.getElementById('rChargeRes').innerText = s.charge_res;
+      document.getElementById('rChargeTotal').innerText = s.charge_total;
+
+      const qrContainer = document.getElementById('qrCodeContainer');
+      qrContainer.innerHTML = '';
+      const trackingUrl = `https://fed-ex-tracking-ashen.vercel.app/index.html?code=${s.tracking_number}`;
+      new QRCode(qrContainer, {
+        text: trackingUrl,
+        width: 64,
+        height: 64
+      });
+
+      document.getElementById('receiptModal').classList.remove('hidden');
+    }
+
+    function closeReceiptModal() {
+      document.getElementById('receiptModal').classList.add('hidden');
+    }
 
     async function fetchAllShipments() {
       const { data: shipments } = await supabaseClient
@@ -364,7 +583,7 @@
       tbody.innerHTML = '';
 
       if (!shipments || shipments.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">No shipments found. Register one above!</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-400">No shipments found. Create one above!</td></tr>';
         return;
       }
 
@@ -373,84 +592,16 @@
         tr.className = 'hover:bg-gray-50';
         tr.innerHTML = `
           <td class="p-3 font-bold text-fedexPurple">${s.tracking_number}</td>
-          <td class="p-3">${s.sender_name} (${s.sender_city}) → ${s.recipient_name} (${s.recipient_city})</td>
-          <td class="p-3"><span class="bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded text-[10px]">${s.status}</span></td>
-          <td class="p-3 text-gray-500">${s.current_location || 'N/A'}</td>
-          <td class="p-3 space-x-2">
-            <button onclick="openUpdateModal('${s.id}', '${s.tracking_number}', '${s.status}', '${s.current_location || ''}', '${s.current_lat || ''}', '${s.current_lng || ''}')" class="bg-fedexPurple text-white px-2.5 py-1 rounded text-[10px] font-bold">Update</button>
-            <button onclick='openReceiptModal(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="border border-gray-300 text-gray-700 px-2 py-1 rounded text-[10px]">Receipt</button>
+          <td class="p-3">${s.sender_name} → ${s.recipient_name}</td>
+          <td class="p-3 font-semibold text-gray-700">${s.charge_total || '$0.00'}</td>
+          <td class="p-3">
+            <button onclick='openReceiptModal(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="bg-fedexPurple text-white px-3 py-1 rounded text-[11px] font-bold">
+              View Receipt
+            </button>
           </td>
         `;
         tbody.appendChild(tr);
       });
-    }
-
-    function openReceiptModal(shipment) {
-      document.getElementById('rcptDate').innerText = new Date(shipment.ship_date || shipment.created_at).toLocaleString();
-      document.getElementById('rcptTrackingNum').innerText = shipment.tracking_number;
-      document.getElementById('rcptSender').innerText = shipment.sender_name;
-      document.getElementById('rcptSenderAddr').innerText = `${shipment.sender_address}, ${shipment.sender_city}, ${shipment.sender_country}`;
-      document.getElementById('rcptRecipient').innerText = shipment.recipient_name;
-      document.getElementById('rcptRecipientAddr').innerText = `${shipment.recipient_address}, ${shipment.recipient_city}, ${shipment.recipient_country}`;
-      document.getElementById('rcptService').innerText = shipment.service_type || 'FedEx Priority Overnight';
-      document.getElementById('rcptWeight').innerText = `${shipment.weight_lbs} lbs`;
-      document.getElementById('rcptType').innerText = shipment.package_type;
-
-      document.getElementById('receiptModal').classList.remove('hidden');
-    }
-
-    function closeReceiptModal() {
-      document.getElementById('receiptModal').classList.add('hidden');
-    }
-
-    function openUpdateModal(id, trackingNum, status, loc, lat, lng) {
-      document.getElementById('updateShipmentId').value = id;
-      document.getElementById('updateTrackingNum').value = trackingNum;
-      document.getElementById('updateStatus').value = status;
-      document.getElementById('updateLocation').value = loc;
-      document.getElementById('updateLat').value = lat;
-      document.getElementById('updateLng').value = lng;
-      
-      const now = new Date();
-      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      document.getElementById('updateEventTime').value = now.toISOString().slice(0, 16);
-
-      document.getElementById('updateModal').classList.remove('hidden');
-    }
-
-    function closeUpdateModal() {
-      document.getElementById('updateModal').classList.add('hidden');
-    }
-
-    async function saveShipmentUpdate() {
-      const id = document.getElementById('updateShipmentId').value;
-      const trackingNum = document.getElementById('updateTrackingNum').value;
-      const status = document.getElementById('updateStatus').value;
-      const location = document.getElementById('updateLocation').value;
-      const lat = parseFloat(document.getElementById('updateLat').value) || null;
-      const lng = parseFloat(document.getElementById('updateLng').value) || null;
-      const description = document.getElementById('updateDescription').value || `Status updated to ${status}`;
-      
-      const customTime = document.getElementById('updateEventTime').value ? new Date(document.getElementById('updateEventTime').value).toISOString() : new Date().toISOString();
-
-      await supabaseClient
-        .from('shipments')
-        .update({ status, current_location: location, current_lat: lat, current_lng: lng, updated_at: customTime })
-        .eq('id', id);
-
-      await supabaseClient.from('tracking_events').insert([{
-        shipment_id: id,
-        tracking_number: trackingNum,
-        status,
-        location,
-        description,
-        event_time: customTime,
-        lat,
-        lng
-      }]);
-
-      closeUpdateModal();
-      fetchAllShipments();
     }
   </script>
 </body>
