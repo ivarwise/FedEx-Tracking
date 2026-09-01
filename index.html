@@ -33,6 +33,13 @@
   </script>
   <style>
     .leaflet-control-attribution { display: none !important; }
+    
+    /* Prevent input shaking / jumping */
+    #searchInput {
+      -webkit-appearance: none;
+      appearance: none;
+      transform: translateZ(0);
+    }
   </style>
 </head>
 <body class="bg-fedexBg text-gray-800 font-sans pb-20">
@@ -55,8 +62,17 @@
 
     <!-- SEARCH INPUT BAR -->
     <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-2">
-      <input type="text" id="searchInput" placeholder="Enter Tracking Number..." class="w-full text-sm outline-none px-2 font-semibold text-gray-700" />
-      <button onclick="performTrack()" class="bg-fedexHeaderPurple hover:bg-purple-950 text-white font-bold text-xs px-5 py-2.5 rounded-lg transition">Track</button>
+      <input 
+        type="text" 
+        id="searchInput" 
+        placeholder="Enter Tracking Number..." 
+        class="w-full text-sm outline-none px-2 font-semibold text-gray-700 bg-transparent"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button onclick="performTrack()" class="bg-fedexHeaderPurple hover:bg-purple-950 text-white font-bold text-xs px-5 py-2.5 rounded-lg transition shrink-0">
+        Track
+      </button>
     </div>
 
     <!-- LOADING STATE -->
@@ -221,7 +237,7 @@
     const SUPABASE_KEY = 'sb_publishable_vl_XazGVbpvyobavVnPqUg_VfqGGZ5B';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let map;
+    let map = null;
     let currentTrackingNumber = '';
 
     // City coordinates for the map
@@ -251,8 +267,6 @@
     // INIT
     // ============================================================
     window.addEventListener('DOMContentLoaded', () => {
-      initMap();
-
       // Support both ?code= and ?tn=
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code') || urlParams.get('tn') || urlParams.get('tracking');
@@ -262,14 +276,6 @@
         fetchTrackingData(code);
       }
     });
-
-    function initMap() {
-      map = L.map('map', { zoomControl: false }).setView([39.8283, -98.5795], 4);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        maxZoom: 18
-      }).addTo(map);
-      L.control.zoom({ position: 'bottomright' }).addTo(map);
-    }
 
     // ============================================================
     // HELPERS
@@ -296,7 +302,7 @@
     function formatDate(dateStr) {
       if (!dateStr) return '—';
       const d = new Date(dateStr);
-      if (isNaN(d)) return dateStr; // already formatted text
+      if (isNaN(d)) return dateStr;
       return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     }
 
@@ -327,7 +333,10 @@
 
     // Allow Enter key
     document.getElementById('searchInput').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') performTrack();
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        performTrack();
+      }
     });
 
     // ============================================================
@@ -404,7 +413,7 @@
       };
       document.getElementById('displayStatusSubtitle').textContent = subtitleMap[status] || 'On the way to delivery';
 
-      // Estimated delivery – prefer real column, then text field
+      // Estimated delivery
       const eta = s.estimated_delivery || s.expected_delivery_text || s.eta || null;
       document.getElementById('displayEstimatedDelivery').textContent = eta ? formatDate(eta) : '—';
       
@@ -449,12 +458,16 @@
       // Progress bar
       updateProgressBar(status);
 
-      // Map
-      const currentLoc = s.current_location || s.sender_city || 'Memphis';
-      renderCurvedRoute(s.sender_city, s.recipient_city, currentLoc);
-
       // Travel history
       renderEvents(events, s);
+
+      // ========== MAP FIX ==========
+      // Wait until the map container is visible in the DOM, then draw
+      const currentLoc = s.current_location || s.sender_city || 'Memphis';
+      
+      setTimeout(() => {
+        initAndDrawMap(s.sender_city, s.recipient_city, currentLoc);
+      }, 80);
     }
 
     // ============================================================
@@ -471,7 +484,6 @@
       const inactive = "w-8 h-8 rounded-full bg-purple-900 text-purple-300 flex items-center justify-center text-xs border border-purple-700";
       const current = "w-8 h-8 rounded-full bg-fedexGreen text-white flex items-center justify-center text-xs shadow-md ring-4 ring-fedexHeaderPurple";
 
-      // Reset
       s1.className = inactive;
       s2.className = inactive;
       s3.className = inactive;
@@ -496,19 +508,30 @@
     }
 
     // ============================================================
-    // MAP WITH CURVED ROUTE
+    // MAP - FIXED VERSION
     // ============================================================
-    function renderCurvedRoute(fromCity, toCity, currentCity) {
+    function initAndDrawMap(fromCity, toCity, currentCity) {
       const start = getCoords(fromCity);
       const end = getCoords(toCity);
       const current = getCoords(currentCity);
 
-      // Clear previous layers
-      map.eachLayer((layer) => {
-        if (layer instanceof L.Marker || layer instanceof L.Polyline || layer instanceof L.GeoJSON) {
-          map.removeLayer(layer);
-        }
+      // If map already exists, remove it completely and recreate
+      if (map) {
+        map.remove();
+        map = null;
+      }
+
+      // Create fresh map instance
+      map = L.map('map', {
+        zoomControl: false,
+        attributionControl: false
       });
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 18
+      }).addTo(map);
+
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
 
       // Curved route
       try {
@@ -520,44 +543,64 @@
         const curved = turf.bezierSpline(line);
 
         L.geoJSON(curved, {
-          style: { color: '#4D148C', weight: 4, opacity: 0.85 }
+          style: { color: '#4D148C', weight: 4, opacity: 0.9 }
         }).addTo(map);
       } catch (e) {
-        // fallback straight line
         L.polyline([start, current, end], {
-          color: '#4D148C', weight: 4, opacity: 0.85
+          color: '#4D148C',
+          weight: 4,
+          opacity: 0.9
         }).addTo(map);
       }
 
-      // Origin & Destination pins
+      // Origin pin
       const pinIcon = L.divIcon({
-        html: `<div style="color:#4D148C;font-size:20px;"><i class="fa-solid fa-location-dot"></i></div>`,
+        html: `<div style="color:#4D148C;font-size:22px;"><i class="fa-solid fa-location-dot"></i></div>`,
         className: '',
-        iconSize: [20, 20],
-        iconAnchor: [10, 20]
+        iconSize: [22, 22],
+        iconAnchor: [11, 22]
       });
 
       L.marker(start, { icon: pinIcon }).addTo(map)
         .bindPopup(`<b>Origin</b><br>${fromCity || 'Origin'}`);
+
       L.marker(end, { icon: pinIcon }).addTo(map)
         .bindPopup(`<b>Destination</b><br>${toCity || 'Destination'}`);
 
       // Current truck marker
       const truckIcon = L.divIcon({
         html: `
-          <div style="background:#4D148C;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);">
-            <i class="fa-solid fa-truck" style="font-size:14px;"></i>
+          <div style="
+            background:#4D148C;
+            color:white;
+            width:36px;
+            height:36px;
+            border-radius:50%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border:3px solid white;
+            box-shadow:0 3px 8px rgba(0,0,0,0.35);
+          ">
+            <i class="fa-solid fa-truck" style="font-size:15px;"></i>
           </div>`,
         className: '',
-        iconSize: [34, 34],
-        iconAnchor: [17, 17]
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
       });
 
       L.marker(current, { icon: truckIcon }).addTo(map)
         .bindPopup(`<b>Current Location</b><br>${currentCity || 'In transit'}`)
         .openPopup();
 
-      map.fitBounds([start, end], { padding: [40, 40] });
+      // Force correct size + fit the route
+      setTimeout(() => {
+        map.invalidateSize();
+        map.fitBounds([start, current, end], {
+          padding: [45, 45],
+          maxZoom: 7
+        });
+      }, 100);
     }
 
     // ============================================================
@@ -568,7 +611,6 @@
       container.innerHTML = '';
 
       if (!events || events.length === 0) {
-        // Show at least the current status
         container.innerHTML = `
           <div class="flex items-start space-x-3 text-xs">
             <div class="w-24 text-gray-500 font-medium shrink-0">
