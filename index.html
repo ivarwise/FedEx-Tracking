@@ -34,7 +34,6 @@
   <style>
     .leaflet-control-attribution { display: none !important; }
     
-    /* Prevent input shaking / jumping */
     #searchInput {
       -webkit-appearance: none;
       appearance: none;
@@ -87,13 +86,12 @@
       <div id="errorMessage">No shipment found for this tracking number.</div>
     </div>
 
-    <!-- MAIN TRACKING CARD (hidden until data loads) -->
+    <!-- MAIN TRACKING CARD -->
     <div id="trackingContent" class="hidden space-y-4">
 
       <!-- MAIN TRACKING CARD -->
       <div class="bg-fedexHeaderPurple text-white rounded-2xl p-5 shadow-lg space-y-5">
         
-        <!-- TOP TRACKING # & SHARE -->
         <div class="flex justify-between items-start">
           <div>
             <div class="text-[10px] font-bold tracking-widest text-purple-200 uppercase">TRACKING #</div>
@@ -104,7 +102,6 @@
           </button>
         </div>
 
-        <!-- STATUS BADGES -->
         <div class="space-y-1">
           <div class="flex items-center space-x-2">
             <span id="displayStatusBadge" class="bg-fedexGreenBg text-fedexGreen text-[11px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">—</span>
@@ -197,9 +194,7 @@
         <div class="flex justify-between items-center border-b pb-2">
           <span class="text-xs font-bold text-gray-900 uppercase">TRAVEL HISTORY</span>
         </div>
-        <div id="travelHistoryList" class="space-y-4 pt-1">
-          <!-- Events injected via JS -->
-        </div>
+        <div id="travelHistoryList" class="space-y-4 pt-1"></div>
       </div>
 
     </div>
@@ -230,9 +225,6 @@
   </nav>
 
   <script>
-    // ============================================================
-    // YOUR REAL SUPABASE CREDENTIALS
-    // ============================================================
     const SUPABASE_URL = 'https://oyaeazydvudevjbwtwtt.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_vl_XazGVbpvyobavVnPqUg_VfqGGZ5B';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -240,9 +232,10 @@
     let map = null;
     let currentTrackingNumber = '';
 
-    // City coordinates for the map
+    // Expanded city list
     const CITY_COORDS = {
       'los angeles': [34.0522, -118.2437],
+      'california': [36.7783, -119.4179],
       'new york': [40.7128, -74.0060],
       'memphis': [35.1495, -90.0490],
       'indianapolis': [39.7684, -86.1581],
@@ -260,14 +253,15 @@
       'detroit': [42.3314, -83.0458],
       'philadelphia': [39.9526, -75.1652],
       'charlotte': [35.2271, -80.8431],
-      'portland': [45.5152, -122.6784]
+      'portland': [45.5152, -122.6784],
+      'nashville': [36.1627, -86.7816],
+      'orlando': [28.5383, -81.3792],
+      'san diego': [32.7157, -117.1611],
+      'austin': [30.2672, -97.7431],
+      'columbus': [39.9612, -82.9988]
     };
 
-    // ============================================================
-    // INIT
-    // ============================================================
     window.addEventListener('DOMContentLoaded', () => {
-      // Support both ?code= and ?tn=
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code') || urlParams.get('tn') || urlParams.get('tracking');
       
@@ -277,9 +271,6 @@
       }
     });
 
-    // ============================================================
-    // HELPERS
-    // ============================================================
     function getCoords(cityName) {
       if (!cityName) return [39.8283, -98.5795];
       const key = cityName.toLowerCase().split(',')[0].trim();
@@ -288,7 +279,7 @@
           return CITY_COORDS[city];
         }
       }
-      return [35.1495, -90.0490]; // default Memphis hub
+      return [39.8283, -98.5795];
     }
 
     function formatTrackingDisplay(num) {
@@ -306,16 +297,6 @@
       return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     }
 
-    function formatDateTime(dateStr) {
-      if (!dateStr) return '—';
-      const d = new Date(dateStr);
-      if (isNaN(d)) return dateStr;
-      return d.toLocaleString('en-US', {
-        month: 'short', day: 'numeric', year: 'numeric',
-        hour: 'numeric', minute: '2-digit', hour12: true
-      });
-    }
-
     function formatTimeOnly(dateStr) {
       if (!dateStr) return '';
       const d = new Date(dateStr);
@@ -323,15 +304,11 @@
       return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
     }
 
-    // ============================================================
-    // TRACK BUTTON
-    // ============================================================
     function performTrack() {
       const code = document.getElementById('searchInput').value.trim();
       if (code) fetchTrackingData(code);
     }
 
-    // Allow Enter key
     document.getElementById('searchInput').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -339,20 +316,15 @@
       }
     });
 
-    // ============================================================
-    // MAIN FETCH FROM DATABASE
-    // ============================================================
     async function fetchTrackingData(trackingNum) {
       const clean = trackingNum.replace(/\s+/g, '');
       currentTrackingNumber = clean;
 
-      // UI states
       document.getElementById('loadingState').classList.remove('hidden');
       document.getElementById('errorState').classList.add('hidden');
       document.getElementById('trackingContent').classList.add('hidden');
 
       try {
-        // Try both with and without spaces
         let { data: shipment, error } = await supabaseClient
           .from('shipments')
           .select('*')
@@ -366,7 +338,6 @@
           return;
         }
 
-        // Fetch travel history
         const { data: events } = await supabaseClient
           .from('tracking_events')
           .select('*')
@@ -387,17 +358,12 @@
       document.getElementById('errorState').classList.remove('hidden');
     }
 
-    // ============================================================
-    // RENDER REAL DATA
-    // ============================================================
     function renderShipment(s, events) {
       document.getElementById('loadingState').classList.add('hidden');
       document.getElementById('trackingContent').classList.remove('hidden');
 
-      // Tracking number
       document.getElementById('displayTrackingNum').textContent = formatTrackingDisplay(s.tracking_number);
 
-      // Status
       const status = s.status || 'Pending';
       document.getElementById('displayStatusBadge').textContent = status.toUpperCase();
       
@@ -413,7 +379,6 @@
       };
       document.getElementById('displayStatusSubtitle').textContent = subtitleMap[status] || 'On the way to delivery';
 
-      // Estimated delivery
       const eta = s.estimated_delivery || s.expected_delivery_text || s.eta || null;
       document.getElementById('displayEstimatedDelivery').textContent = eta ? formatDate(eta) : '—';
       
@@ -425,7 +390,7 @@
         document.getElementById('displayOnTime').className = 'text-xs text-purple-200 font-medium';
       }
 
-      // From / To
+      // From / To - FIXED
       const fromCity = s.sender_city || '';
       const fromState = s.sender_state || '';
       const fromZip = s.sender_zip || '';
@@ -440,7 +405,6 @@
         `${toCity}${toState ? ', ' + toState : ''}${toZip ? ' ' + toZip : ''}`.trim() || '—';
       document.getElementById('displayToCountry').textContent = s.recipient_country || 'United States';
 
-      // Specs
       document.getElementById('displayService').textContent = s.service_type || '—';
       
       if (s.weight_lbs) {
@@ -455,24 +419,16 @@
       document.getElementById('displayShipDate').textContent = 
         formatDate(s.ship_date || s.ship_date_text || s.created_at);
 
-      // Progress bar
       updateProgressBar(status);
-
-      // Travel history
       renderEvents(events, s);
 
-      // ========== MAP FIX ==========
-      // Wait until the map container is visible in the DOM, then draw
+      // MAP
       const currentLoc = s.current_location || s.sender_city || 'Memphis';
-      
       setTimeout(() => {
         initAndDrawMap(s.sender_city, s.recipient_city, currentLoc);
       }, 80);
     }
 
-    // ============================================================
-    // PROGRESS BAR
-    // ============================================================
     function updateProgressBar(status) {
       const s1 = document.getElementById('stepIcon1');
       const s2 = document.getElementById('stepIcon2');
@@ -507,33 +463,30 @@
       }
     }
 
-    // ============================================================
-    // MAP - FIXED VERSION
-    // ============================================================
+    // ========== IMPROVED MAP ==========
     function initAndDrawMap(fromCity, toCity, currentCity) {
       const start = getCoords(fromCity);
       const end = getCoords(toCity);
       const current = getCoords(currentCity);
 
-      // If map already exists, remove it completely and recreate
       if (map) {
         map.remove();
         map = null;
       }
 
-      // Create fresh map instance
       map = L.map('map', {
         zoomControl: false,
         attributionControl: false
       });
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      // Clean free tiles - no more API KEY REQUIRED
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18
       }).addTo(map);
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-      // Curved route
+      // Purple route line
       try {
         const line = turf.lineString([
           [start[1], start[0]],
@@ -543,12 +496,12 @@
         const curved = turf.bezierSpline(line);
 
         L.geoJSON(curved, {
-          style: { color: '#4D148C', weight: 4, opacity: 0.9 }
+          style: { color: '#4D148C', weight: 5, opacity: 0.9 }
         }).addTo(map);
       } catch (e) {
         L.polyline([start, current, end], {
           color: '#4D148C',
-          weight: 4,
+          weight: 5,
           opacity: 0.9
         }).addTo(map);
       }
@@ -567,7 +520,7 @@
       L.marker(end, { icon: pinIcon }).addTo(map)
         .bindPopup(`<b>Destination</b><br>${toCity || 'Destination'}`);
 
-      // Current truck marker
+      // Truck at current location
       const truckIcon = L.divIcon({
         html: `
           <div style="
@@ -593,19 +546,15 @@
         .bindPopup(`<b>Current Location</b><br>${currentCity || 'In transit'}`)
         .openPopup();
 
-      // Force correct size + fit the route
       setTimeout(() => {
         map.invalidateSize();
         map.fitBounds([start, current, end], {
           padding: [45, 45],
-          maxZoom: 7
+          maxZoom: 6
         });
-      }, 100);
+      }, 120);
     }
 
-    // ============================================================
-    // TRAVEL HISTORY
-    // ============================================================
     function renderEvents(events, shipment) {
       const container = document.getElementById('travelHistoryList');
       container.innerHTML = '';
@@ -653,9 +602,6 @@
       });
     }
 
-    // ============================================================
-    // SHARE / COPY
-    // ============================================================
     function copyTracking() {
       const num = document.getElementById('displayTrackingNum').textContent;
       navigator.clipboard.writeText(num).then(() => {
